@@ -1,15 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import * as apiService from '../services/api';
 
-const PostDetails = ({ post: initialPost, onClose, currencies, cities, onAddToFavorites, isFavorite }) => {
+const PostDetails = ({ post: initialPost, onClose, currencies, cities, onAddToFavorites, isFavorite, currentUser }) => {
   const [post, setPost] = useState(initialPost);
+  const [authorInfo, setAuthorInfo] = useState(null);
 
   useEffect(() => {
     // Загружаем детали поста и увеличиваем счетчик просмотров
     const loadPostDetails = async () => {
       try {
-        const detailsData = await apiService.getPost(initialPost.id);
+        const detailsData = await apiService.getPost(initialPost.id, currentUser?.id);
         setPost(detailsData);
+        
+        // Загружаем информацию об авторе
+        if (detailsData.author_id) {
+          const authorData = await apiService.getUser(detailsData.author_id);
+          if (authorData && !authorData.error) {
+            setAuthorInfo(authorData);
+          }
+        }
       } catch (error) {
         console.error('Error loading post details:', error);
         setPost(initialPost);
@@ -17,7 +26,7 @@ const PostDetails = ({ post: initialPost, onClose, currencies, cities, onAddToFa
     };
 
     loadPostDetails();
-  }, [initialPost.id]);
+  }, [initialPost.id, currentUser?.id]);
   const getCurrencySymbol = (currencyId) => {
     const currency = currencies.find(c => c.id === currencyId);
     return currency?.symbol || '₽';
