@@ -86,8 +86,9 @@ const ProfilePage = ({ user, cities, onUpdateUser }) => {
       onUpdateUser({ ...user, ...settings });
       setShowSettings(false);
       
-      // Применяем тему
+      // Применяем тему и сохраняем в localStorage
       document.documentElement.setAttribute('data-theme', settings.theme);
+      localStorage.setItem('theme', settings.theme);
       
       alert('Настройки сохранены');
     } catch (error) {
