@@ -353,6 +353,7 @@ function App() {
           cities={cities}
           onAddToFavorites={handleAddToFavorites}
           isFavorite={favorites.includes(selectedPost.id)}
+          currentUser={currentUser}
         />
       )}
     </div>
