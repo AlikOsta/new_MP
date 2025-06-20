@@ -242,6 +242,22 @@ const SearchBar = ({
               </div>
             </>
           )}
+          
+          {/* Кнопки применения и сброса фильтров */}
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={handleApplyFilters}
+              className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
+            >
+              Применить
+            </button>
+            <button
+              onClick={handleResetFilters}
+              className="flex-1 border border-gray-300 py-2 px-4 rounded-lg hover:bg-gray-50"
+            >
+              Сбросить
+            </button>
+          </div>
         </div>
       )}
     </div>
