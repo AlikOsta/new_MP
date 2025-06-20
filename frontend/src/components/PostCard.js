@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const PostCard = ({ post, onAddToFavorites, onViewDetails, currencies, cities, isFavorite }) => {
   const [localIsFavorite, setLocalIsFavorite] = useState(isFavorite);
