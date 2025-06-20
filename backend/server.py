@@ -55,10 +55,10 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(users_router)
 app.include_router(categories_router)
 app.include_router(posts_router)
 app.include_router(packages_router)
+app.include_router(users_router)
 
 @app.get("/api/health")
 async def health_check():
@@ -66,8 +66,8 @@ async def health_check():
 
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
-    """Telegram bot webhook endpoint"""
-    return await webhook_handler(request)
+    """Telegram bot webhook endpoint (placeholder)"""
+    return {"ok": True}
 
 @app.get("/")
 async def root():
@@ -85,97 +85,70 @@ async def initialize_default_data():
     
     # Create default currencies
     currencies = [
-        {"code": "RUB", "name_ru": "Российский рубль", "name_ua": "Російський рубль", "symbol": "₽"},
-        {"code": "USD", "name_ru": "Доллар США", "name_ua": "Долар США", "symbol": "$"},
-        {"code": "EUR", "name_ru": "Евро", "name_ua": "Євро", "symbol": "€"},
-        {"code": "UAH", "name_ru": "Украинская гривна", "name_ua": "Українська гривня", "symbol": "₴"},
+        {"_id": "rub-id", "code": "RUB", "name_ru": "Российский рубль", "name_ua": "Російський рубль", "symbol": "₽", "is_active": True},
+        {"_id": "usd-id", "code": "USD", "name_ru": "Доллар США", "name_ua": "Долар США", "symbol": "$", "is_active": True},
+        {"_id": "eur-id", "code": "EUR", "name_ru": "Евро", "name_ua": "Євро", "symbol": "€", "is_active": True},
+        {"_id": "uah-id", "code": "UAH", "name_ru": "Украинская гривна", "name_ua": "Українська гривня", "symbol": "₴", "is_active": True},
     ]
     
     for currency in currencies:
-        currency["is_active"] = True
         await db.currencies.insert_one(currency)
     
     # Create default super rubrics
     super_rubrics = [
-        {"name_ru": "Работа", "name_ua": "Робота", "icon": "💼"},
-        {"name_ru": "Услуги", "name_ua": "Послуги", "icon": "🛠️"},
+        {"_id": "job-rubric", "name_ru": "Работа", "name_ua": "Робота", "icon": "💼", "is_active": True},
+        {"_id": "service-rubric", "name_ru": "Услуги", "name_ua": "Послуги", "icon": "🛠️", "is_active": True},
     ]
     
-    rubric_ids = {}
     for rubric in super_rubrics:
-        rubric["is_active"] = True
-        result = await db.super_rubrics.insert_one(rubric)
-        rubric_ids[rubric["name_ru"]] = str(result.inserted_id)
-    
-    # Create default sub rubrics
-    sub_rubrics = [
-        # Работа
-        {"name_ru": "IT и программирование", "name_ua": "IT та програмування", "super_rubric_id": rubric_ids["Работа"]},
-        {"name_ru": "Дизайн", "name_ua": "Дизайн", "super_rubric_id": rubric_ids["Работа"]},
-        {"name_ru": "Маркетинг", "name_ua": "Маркетинг", "super_rubric_id": rubric_ids["Работа"]},
-        {"name_ru": "Продажи", "name_ua": "Продажі", "super_rubric_id": rubric_ids["Работа"]},
-        
-        # Услуги
-        {"name_ru": "Ремонт и строительство", "name_ua": "Ремонт та будівництво", "super_rubric_id": rubric_ids["Услуги"]},
-        {"name_ru": "Красота и здоровье", "name_ua": "Краса та здоров'я", "super_rubric_id": rubric_ids["Услуги"]},
-        {"name_ru": "Образование", "name_ua": "Освіта", "super_rubric_id": rubric_ids["Услуги"]},
-        {"name_ru": "Доставка", "name_ua": "Доставка", "super_rubric_id": rubric_ids["Услуги"]},
-    ]
-    
-    for sub_rubric in sub_rubrics:
-        sub_rubric["is_active"] = True
-        await db.sub_rubrics.insert_one(sub_rubric)
+        await db.super_rubrics.insert_one(rubric)
     
     # Create default cities
     cities = [
-        {"name_ru": "Москва", "name_ua": "Москва"},
-        {"name_ru": "Санкт-Петербург", "name_ua": "Санкт-Петербург"},
-        {"name_ru": "Киев", "name_ua": "Київ"},
-        {"name_ru": "Харьков", "name_ua": "Харків"},
-        {"name_ru": "Одесса", "name_ua": "Одеса"},
-        {"name_ru": "Минск", "name_ua": "Мінск"},
+        {"_id": "moscow-city", "name_ru": "Москва", "name_ua": "Москва", "is_active": True},
+        {"_id": "spb-city", "name_ru": "Санкт-Петербург", "name_ua": "Санкт-Петербург", "is_active": True},
+        {"_id": "kiev-city", "name_ru": "Киев", "name_ua": "Київ", "is_active": True},
+        {"_id": "kharkiv-city", "name_ru": "Харьков", "name_ua": "Харків", "is_active": True},
+        {"_id": "odessa-city", "name_ru": "Одесса", "name_ua": "Одеса", "is_active": True},
+        {"_id": "minsk-city", "name_ru": "Минск", "name_ua": "Мінск", "is_active": True},
     ]
     
-    city_ids = {}
     for city in cities:
-        city["is_active"] = True
-        result = await db.cities.insert_one(city)
-        city_ids[city["name_ru"]] = str(result.inserted_id)
-    
-    # Get RUB currency ID
-    rub_currency = await db.currencies.find_one({"code": "RUB"})
-    rub_id = str(rub_currency["_id"])
+        await db.cities.insert_one(city)
     
     # Create default packages
     packages = [
         {
+            "_id": "basic-package",
             "name_ru": "Базовый",
             "name_ua": "Базовий",
             "package_type": "basic",
             "price": 0.0,
-            "currency_id": rub_id,
+            "currency_id": "rub-id",
             "duration_days": 7,
             "features_ru": ["1 бесплатное объявление в неделю", "Стандартное размещение"],
-            "features_ua": ["1 безкоштовне оголошення на тиждень", "Стандартно розміщення"],
+            "features_ua": ["1 безкоштовне оголошення на тиждень", "Стандартне розміщення"],
             "is_active": True
         },
         {
+            "_id": "standard-package",
             "name_ru": "Стандарт",
             "name_ua": "Стандарт",
             "package_type": "standard",
             "price": 100.0,
-            "currency_id": rub_id,
+            "currency_id": "rub-id",
             "duration_days": 14,
             "features_ru": ["Приоритетное размещение", "Выделение цветом", "Больше просмотров"],
             "features_ua": ["Пріоритетне розміщення", "Виділення кольором", "Більше переглядів"],
             "is_active": True
         },
         {
+            "_id": "premium-package",
             "name_ru": "Премиум",
             "name_ua": "Преміум",
             "package_type": "premium",
             "price": 250.0,
-            "currency_id": rub_id,
+            "currency_id": "rub-id",
             "duration_days": 30,
             "features_ru": ["Топ размещение", "Особое выделение", "Максимум просмотров", "Поддержка"],
             "features_ua": ["Топ розміщення", "Особливе виділення", "Максимум переглядів", "Підтримка"],
