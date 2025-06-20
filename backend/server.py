@@ -129,11 +129,17 @@ async def create_service_post(request: Request):
 @posts_router.put("/{post_id}/status")
 async def update_post_status(post_id: str, request: Request):
     """Update post status"""
+    from bson import ObjectId
     data = await request.json()
     status = data.get("status", 3)
     
+    try:
+        object_id = ObjectId(post_id)
+    except:
+        return {"error": "Invalid post ID"}
+    
     result = await db.posts.update_one(
-        {"_id": post_id},
+        {"_id": object_id},
         {"$set": {"status": status, "updated_at": datetime.now().isoformat()}}
     )
     
