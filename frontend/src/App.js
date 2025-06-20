@@ -119,6 +119,11 @@ function App() {
       setSelectedCategory(value);
     } else if (type === 'city') {
       setSelectedCity(value);
+    } else {
+      setFilters(prev => ({
+        ...prev,
+        [type]: value
+      }));
     }
   };
 
