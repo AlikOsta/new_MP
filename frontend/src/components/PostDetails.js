@@ -188,6 +188,39 @@ const PostDetails = ({ post: initialPost, onClose, currencies, cities, onAddToFa
             </div>
           </div>
 
+          {/* Author info */}
+          {authorInfo && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3">Продавец</h3>
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center overflow-hidden">
+                  {authorInfo.photo_url ? (
+                    <img src={authorInfo.photo_url} alt="Author" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-lg">👤</span>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium">
+                    {authorInfo.first_name} {authorInfo.last_name || ''}
+                  </div>
+                  <div className="text-sm text-gray-600">@{authorInfo.username}</div>
+                  {authorInfo.city_id && (
+                    <div className="text-xs text-gray-500">{getCityName(authorInfo.city_id)}</div>
+                  )}
+                </div>
+                {!isOwnPost && (
+                  <button
+                    className="text-blue-600 text-sm hover:underline"
+                    onClick={() => {/* Navigate to author profile */}}
+                  >
+                    Профиль
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Meta info */}
           <div className="border-t pt-4 mb-6">
             <div className="flex justify-between items-center text-sm text-gray-500">
