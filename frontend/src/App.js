@@ -161,9 +161,15 @@ function App() {
 
   // Применяем тему при загрузке
   useEffect(() => {
-    const theme = currentUser.theme || 'light';
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [currentUser.theme]);
+    // Загружаем тему из localStorage или используем тему пользователя
+    const savedTheme = localStorage.getItem('theme') || currentUser.theme || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    // Обновляем пользователя если тема отличается
+    if (savedTheme !== currentUser.theme) {
+      setCurrentUser(prev => ({ ...prev, theme: savedTheme }));
+    }
+  }, []);
 
   const handleViewDetails = (post) => {
     setSelectedPost(post);
