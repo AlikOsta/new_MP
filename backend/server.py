@@ -73,9 +73,58 @@ async def get_posts(post_type: str = None, search: str = None):
     cursor = db.posts.find(query).sort("created_at", -1).limit(20)
     result = []
     async for doc in cursor:
-        doc["id"] = str(doc["_id"])
+        doc["_id"] = str(doc["_id"])
+        doc["id"] = doc["_id"]
         result.append(doc)
     return result
+
+@posts_router.post("/jobs")
+async def create_job_post(request: Request):
+    """Create a job post"""
+    data = await request.json()
+    
+    # Add additional fields
+    data["post_type"] = "job"
+    data["status"] = 1  # Draft status
+    data["views_count"] = 0
+    data["is_premium"] = False
+    data["created_at"] = datetime.now().isoformat()
+    data["updated_at"] = datetime.now().isoformat()
+    
+    # Get author_id from header
+    author_id = request.headers.get("X-Author-ID", "demo-user")
+    data["author_id"] = author_id
+    
+    result = await db.posts.insert_one(data)
+    created_post = await db.posts.find_one({"_id": result.inserted_id})
+    created_post["_id"] = str(created_post["_id"])
+    created_post["id"] = created_post["_id"]
+    
+    return created_post
+
+@posts_router.post("/services")
+async def create_service_post(request: Request):
+    """Create a service post"""
+    data = await request.json()
+    
+    # Add additional fields
+    data["post_type"] = "service"
+    data["status"] = 1  # Draft status
+    data["views_count"] = 0
+    data["is_premium"] = False
+    data["created_at"] = datetime.now().isoformat()
+    data["updated_at"] = datetime.now().isoformat()
+    
+    # Get author_id from header
+    author_id = request.headers.get("X-Author-ID", "demo-user")
+    data["author_id"] = author_id
+    
+    result = await db.posts.insert_one(data)
+    created_post = await db.posts.find_one({"_id": result.inserted_id})
+    created_post["_id"] = str(created_post["_id"])
+    created_post["id"] = created_post["_id"]
+    
+    return created_post
 
 # Packages router  
 packages_router = APIRouter(prefix="/api/packages", tags=["packages"])
