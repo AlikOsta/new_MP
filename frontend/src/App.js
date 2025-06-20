@@ -7,7 +7,7 @@ import CategoryTabs from './components/CategoryTabs';
 import SearchBar from './components/SearchBar';
 import PostCard from './components/PostCard';
 import CreatePostModal from './components/CreatePostModal';
-import ProfileModal from './components/ProfileModal';
+import ProfilePage from './components/ProfileModal';
 import TariffsModal from './components/TariffsModal';
 import PostDetails from './components/PostDetails';
 import FavoritesPage from './components/FavoritesPage';
