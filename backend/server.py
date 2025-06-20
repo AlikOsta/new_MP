@@ -190,6 +190,8 @@ async def remove_from_favorites(request: Request):
 @posts_router.get("/favorites/{user_id}")
 async def get_user_favorites(user_id: str):
     """Get user's favorite posts"""
+    from bson import ObjectId
+    
     # Get favorite post IDs
     cursor = db.favorites.find({"user_id": user_id})
     post_ids = [fav["post_id"] async for fav in cursor]
@@ -197,8 +199,19 @@ async def get_user_favorites(user_id: str):
     if not post_ids:
         return []
     
+    # Convert string IDs to ObjectIds for MongoDB query
+    object_ids = []
+    for post_id in post_ids:
+        try:
+            object_ids.append(ObjectId(post_id))
+        except:
+            continue  # Skip invalid IDs
+    
+    if not object_ids:
+        return []
+    
     # Get posts
-    cursor = db.posts.find({"_id": {"$in": post_ids}})
+    cursor = db.posts.find({"_id": {"$in": object_ids}})
     posts = []
     async for doc in cursor:
         doc["_id"] = str(doc["_id"])
