@@ -438,6 +438,8 @@ class TelegramMarketplaceAPITester:
             print("❌ Cannot test favorites: No job post created")
             return False, None
         
+        print("\n--- Testing Favorites API Endpoints ---")
+        
         # Test adding to favorites
         add_data = {"user_id": "demo-user", "post_id": self.created_job_post_id}
         add_success, add_data = self.run_test(
@@ -461,11 +463,17 @@ class TelegramMarketplaceAPITester:
         if get_success:
             # Verify our post is in favorites
             if isinstance(get_data, list):
-                found_post = any(post_id == self.created_job_post_id for post_id in get_data)
+                found_post = any(post.get("id") == self.created_job_post_id for post in get_data)
                 if found_post:
-                    print("✅ Verified: Post found in user favorites")
+                    print("✅ FIXED: Post found in user favorites via new API endpoint")
                 else:
-                    print("❌ Verification failed: Post not found in user favorites")
+                    print("❌ FIX FAILED: Post not found in user favorites via new API endpoint")
+                    
+                # Verify the favorites endpoint returns full post objects, not just IDs
+                if get_data and "title" in get_data[0] and "description" in get_data[0]:
+                    print("✅ FIXED: Favorites endpoint returns full post objects")
+                else:
+                    print("❌ FIX FAILED: Favorites endpoint does not return full post objects")
             
         # Test removing from favorites
         remove_data = {"user_id": "demo-user", "post_id": self.created_job_post_id}
@@ -486,11 +494,37 @@ class TelegramMarketplaceAPITester:
             )
             
             if isinstance(verify_data, list):
-                not_found = all(post_id != self.created_job_post_id for post_id in verify_data)
+                not_found = all(post.get("id") != self.created_job_post_id for post in verify_data)
                 if not_found:
-                    print("✅ Verified: Post successfully removed from favorites")
+                    print("✅ FIXED: Post successfully removed from favorites via API endpoint")
                 else:
-                    print("❌ Verification failed: Post still found in favorites after removal")
+                    print("❌ FIX FAILED: Post still found in favorites after removal via API endpoint")
+        
+        # Test adding service post to favorites
+        if self.created_service_post_id:
+            add_service_data = {"user_id": "demo-user", "post_id": self.created_service_post_id}
+            add_service_success, _ = self.run_test(
+                "Add Service Post to Favorites",
+                "POST",
+                "api/posts/favorites",
+                200,
+                data=add_service_data
+            )
+            
+            if add_service_success:
+                # Verify service post is in favorites
+                _, verify_service_data = self.run_test(
+                    "Verify Service Post in Favorites",
+                    "GET",
+                    "api/posts/favorites/demo-user"
+                )
+                
+                if isinstance(verify_service_data, list):
+                    found_service = any(post.get("id") == self.created_service_post_id for post in verify_service_data)
+                    if found_service:
+                        print("✅ FIXED: Service post found in user favorites via API endpoint")
+                    else:
+                        print("❌ FIX FAILED: Service post not found in user favorites via API endpoint")
         
         return add_success and get_success and remove_success, get_data
         
