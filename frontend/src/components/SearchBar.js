@@ -146,8 +146,8 @@ const SearchBar = ({
                   Опыт работы
                 </label>
                 <select 
-                  value={experience}
-                  onChange={(e) => handleJobFilterChange('experience', e.target.value)}
+                  value={localFilters.experience}
+                  onChange={(e) => handleFilterChange('experience', e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Любой</option>
