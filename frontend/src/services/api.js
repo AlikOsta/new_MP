@@ -72,8 +72,13 @@ class ApiService {
     return this.request(`/api/posts/${queryString ? '?' + queryString : ''}`);
   }
 
-  async getPost(postId) {
-    return this.request(`/api/posts/${postId}`);
+  async getPost(postId, userId = null) {
+    const params = new URLSearchParams();
+    if (userId) {
+      params.append('user_id', userId);
+    }
+    const queryString = params.toString();
+    return this.request(`/api/posts/${postId}${queryString ? '?' + queryString : ''}`);
   }
 
   async createJobPost(postData, authorId) {
