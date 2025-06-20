@@ -159,6 +159,12 @@ function App() {
     }
   }, [currentUser.id]);
 
+  // Применяем тему при загрузке
+  useEffect(() => {
+    const theme = currentUser.theme || 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [currentUser.theme]);
+
   const handleViewDetails = (post) => {
     setSelectedPost(post);
   };
