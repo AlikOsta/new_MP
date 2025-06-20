@@ -2,7 +2,15 @@ const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001
 
 class ApiService {
   async request(endpoint, options = {}) {
-    const url = `${API_BASE_URL}${endpoint}`;
+    // Ensure we use the correct protocol
+    let baseUrl = API_BASE_URL;
+    
+    // If we're on HTTPS and the base URL is HTTP, convert it to HTTPS
+    if (window.location.protocol === 'https:' && baseUrl.startsWith('http:')) {
+      baseUrl = baseUrl.replace('http:', 'https:');
+    }
+    
+    const url = `${baseUrl}${endpoint}`;
     const config = {
       headers: {
         'Content-Type': 'application/json',
