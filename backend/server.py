@@ -325,7 +325,16 @@ async def create_user(request: Request):
 
 @users_router.get("/{user_id}")
 async def get_user(user_id: str):
-    user = await db.users.find_one({"_id": user_id})
+    from bson import ObjectId
+    
+    try:
+        # Try as ObjectId first
+        object_id = ObjectId(user_id)
+        user = await db.users.find_one({"_id": object_id})
+    except:
+        # If that fails, try as string
+        user = await db.users.find_one({"_id": user_id})
+    
     if user:
         user["id"] = str(user["_id"])
         user["_id"] = str(user["_id"])
