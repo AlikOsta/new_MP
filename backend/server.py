@@ -126,6 +126,22 @@ async def create_service_post(request: Request):
     
     return created_post
 
+@posts_router.put("/{post_id}/status")
+async def update_post_status(post_id: str, request: Request):
+    """Update post status"""
+    data = await request.json()
+    status = data.get("status", 3)
+    
+    result = await db.posts.update_one(
+        {"_id": post_id},
+        {"$set": {"status": status, "updated_at": datetime.now().isoformat()}}
+    )
+    
+    if result.matched_count == 0:
+        return {"error": "Post not found"}
+    
+    return {"message": "Status updated successfully"}
+
 # Packages router  
 packages_router = APIRouter(prefix="/api/packages", tags=["packages"])
 
