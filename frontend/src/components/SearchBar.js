@@ -199,8 +199,8 @@ const SearchBar = ({
                 <input
                   type="number"
                   placeholder="Например, 50000"
-                  value={minSalary}
-                  onChange={(e) => handleJobFilterChange('min_salary', e.target.value)}
+                  value={localFilters.minSalary}
+                  onChange={(e) => handleFilterChange('minSalary', e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
