@@ -141,10 +141,6 @@ async def root():
 
 async def initialize_default_data():
     """Initialize default categories, currencies, and packages"""
-    from core.database import get_database
-    
-    db = await get_database()
-    
     # Check if data already exists
     if await db.super_rubrics.count_documents({}) > 0:
         return
