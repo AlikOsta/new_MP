@@ -129,7 +129,11 @@ const SearchBar = ({
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Опыт работы
                 </label>
-                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                <select 
+                  value={experience}
+                  onChange={(e) => handleJobFilterChange('experience', e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                >
                   <option value="">Любой</option>
                   <option value="no_experience">Без опыта</option>
                   <option value="up_to_1_year">До 1 года</option>
@@ -143,7 +147,11 @@ const SearchBar = ({
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   График работы
                 </label>
-                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                <select 
+                  value={schedule}
+                  onChange={(e) => handleJobFilterChange('schedule', e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                >
                   <option value="">Любой</option>
                   <option value="full_time">Полный день</option>
                   <option value="part_time">Частичная занятость</option>
@@ -156,7 +164,11 @@ const SearchBar = ({
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Формат работы
                 </label>
-                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                <select 
+                  value={workFormat}
+                  onChange={(e) => handleJobFilterChange('work_format', e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                >
                   <option value="">Любой</option>
                   <option value="office">Офис</option>
                   <option value="remote">Удаленно</option>
@@ -171,6 +183,8 @@ const SearchBar = ({
                 <input
                   type="number"
                   placeholder="Например, 50000"
+                  value={minSalary}
+                  onChange={(e) => handleJobFilterChange('min_salary', e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
