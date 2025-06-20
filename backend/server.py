@@ -302,10 +302,12 @@ async def create_user(request: Request):
     """Create a new user"""
     data = await request.json()
     
-    # Check if user already exists
+    # Check if user already exists by telegram_id
     existing_user = await db.users.find_one({"telegram_id": data.get("telegram_id")})
     if existing_user:
-        return {"error": "User already exists"}
+        existing_user["id"] = str(existing_user["_id"])
+        existing_user["_id"] = str(existing_user["_id"])
+        return existing_user
     
     # Add default fields
     data["created_at"] = datetime.now().isoformat()
