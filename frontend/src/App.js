@@ -223,6 +223,7 @@ function App() {
             cities={cities}
             onViewDetails={handleViewDetails}
             onRemoveFromFavorites={handleAddToFavorites}
+            currentUser={currentUser}
           />
         )}
         
