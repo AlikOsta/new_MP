@@ -312,6 +312,22 @@ class TelegramMarketplaceAPITester:
                 print("✅ Verified: Created job post has correct title and type")
             else:
                 print("❌ Verification failed: Created job post data mismatch")
+                
+            # VERIFY FIX #1: Check that the post status is 3 (active)
+            if data.get("status") == 3:
+                print("✅ FIXED: New job post is immediately active (status = 3)")
+            else:
+                print(f"❌ FIX FAILED: New job post has status {data.get('status')} instead of 3 (active)")
+                
+            # Verify the post appears in the active posts list
+            _, posts_data = self.run_test("Get Active Posts", "GET", "api/posts/")
+            
+            if posts_data:
+                found_post = any(post.get("id") == self.created_job_post_id for post in posts_data)
+                if found_post:
+                    print("✅ Verified: New job post found in active posts list")
+                else:
+                    print("❌ Verification failed: New job post not found in active posts list")
         
         return success, data
 
