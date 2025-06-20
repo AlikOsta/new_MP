@@ -68,7 +68,8 @@ class ApiService {
     });
     
     const queryString = params.toString();
-    return this.request(`/api/posts${queryString ? '?' + queryString : ''}`);
+    // Always use trailing slash to avoid redirect issues
+    return this.request(`/api/posts/${queryString ? '?' + queryString : ''}`);
   }
 
   async getPost(postId) {
