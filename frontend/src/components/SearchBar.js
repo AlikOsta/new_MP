@@ -164,8 +164,8 @@ const SearchBar = ({
                   График работы
                 </label>
                 <select 
-                  value={schedule}
-                  onChange={(e) => handleJobFilterChange('schedule', e.target.value)}
+                  value={localFilters.schedule}
+                  onChange={(e) => handleFilterChange('schedule', e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Любой</option>
