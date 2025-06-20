@@ -83,6 +83,8 @@ const PostDetails = ({ post: initialPost, onClose, currencies, cities, onAddToFa
     return labels[format] || format;
   };
 
+  const isOwnPost = currentUser && post.author_id === currentUser.id;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end justify-center">
       <div className="bg-white rounded-t-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
@@ -97,18 +99,32 @@ const PostDetails = ({ post: initialPost, onClose, currencies, cities, onAddToFa
           </button>
         </div>
 
-        {/* Image */}
-        {post.image_url ? (
-          <img 
-            src={post.image_url} 
-            alt={post.title}
-            className="w-full h-64 object-cover"
-          />
-        ) : (
-          <div className="w-full h-64 bg-gray-200 flex items-center justify-center">
-            <span className="text-6xl text-gray-400">📷</span>
-          </div>
-        )}
+        {/* Image with favorite button */}
+        <div className="relative">
+          {post.image_url ? (
+            <img 
+              src={post.image_url} 
+              alt={post.title}
+              className="w-full h-64 object-cover"
+            />
+          ) : (
+            <div className="w-full h-64 bg-gray-200 flex items-center justify-center">
+              <span className="text-6xl text-gray-400">📷</span>
+            </div>
+          )}
+          
+          {/* Favorite button - only if not own post */}
+          {!isOwnPost && (
+            <button
+              onClick={() => onAddToFavorites(post.id)}
+              className="absolute top-4 right-4 w-10 h-10 bg-white bg-opacity-90 rounded-full flex items-center justify-center shadow-lg"
+            >
+              <span className={`text-lg ${isFavorite ? 'text-red-500' : 'text-gray-400'}`}>
+                {isFavorite ? '❤️' : '🤍'}
+              </span>
+            </button>
+          )}
+        </div>
 
         {/* Content */}
         <div className="p-4">
