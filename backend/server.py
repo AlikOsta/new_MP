@@ -288,6 +288,30 @@ async def get_user(user_id: str):
         return user
     return {"error": "User not found"}
 
+@users_router.put("/{user_id}")
+async def update_user(user_id: str, request: Request):
+    """Update user profile"""
+    data = await request.json()
+    
+    # Remove None values
+    update_data = {k: v for k, v in data.items() if v is not None}
+    if not update_data:
+        return {"error": "No data to update"}
+    
+    update_data["updated_at"] = datetime.now().isoformat()
+    
+    result = await db.users.update_one(
+        {"_id": user_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        return {"error": "User not found"}
+    
+    updated_user = await db.users.find_one({"_id": user_id})
+    updated_user["id"] = str(updated_user["_id"])
+    return updated_user
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup - Initialize default data
