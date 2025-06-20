@@ -12,6 +12,11 @@ const SearchBar = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('date');
+  const [experience, setExperience] = useState('');
+  const [schedule, setSchedule] = useState('');
+  const [workFormat, setWorkFormat] = useState('');
+  const [minSalary, setMinSalary] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -26,8 +31,34 @@ const SearchBar = ({
 
   const handleSortChange = (value) => {
     setSortBy(value);
-    // В будущем можно добавить сортировку
-    console.log('Sort by:', value);
+    onFilterChange('sort', value);
+  };
+
+  const handleJobFilterChange = (filterType, value) => {
+    onFilterChange(filterType, value);
+    
+    switch(filterType) {
+      case 'experience':
+        setExperience(value);
+        break;
+      case 'schedule':
+        setSchedule(value);
+        break;
+      case 'work_format':
+        setWorkFormat(value);
+        break;
+      case 'min_salary':
+        setMinSalary(value);
+        break;
+    }
+  };
+
+  const handleServiceFilterChange = (filterType, value) => {
+    onFilterChange(filterType, value);
+    
+    if (filterType === 'max_price') {
+      setMaxPrice(value);
+    }
   };
 
   return (
