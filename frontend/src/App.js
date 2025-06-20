@@ -54,7 +54,7 @@ function App() {
     if (currentPage === 'home') {
       loadPosts();
     }
-  }, [activeTab, searchQuery, selectedCategory, selectedCity, currentPage]);
+  }, [activeTab, searchQuery, selectedCategory, selectedCity, filters, currentPage]);
 
   const loadInitialData = async () => {
     try {
