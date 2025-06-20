@@ -297,11 +297,36 @@ async def get_packages():
 # Users router
 users_router = APIRouter(prefix="/api/users", tags=["users"])
 
+@users_router.post("/")
+async def create_user(request: Request):
+    """Create a new user"""
+    data = await request.json()
+    
+    # Check if user already exists
+    existing_user = await db.users.find_one({"telegram_id": data.get("telegram_id")})
+    if existing_user:
+        return {"error": "User already exists"}
+    
+    # Add default fields
+    data["created_at"] = datetime.now().isoformat()
+    data["updated_at"] = datetime.now().isoformat()
+    data["is_active"] = True
+    data["language"] = data.get("language", "ru")
+    data["theme"] = data.get("theme", "light")
+    
+    result = await db.users.insert_one(data)
+    created_user = await db.users.find_one({"_id": result.inserted_id})
+    created_user["id"] = str(created_user["_id"])
+    created_user["_id"] = str(created_user["_id"])
+    
+    return created_user
+
 @users_router.get("/{user_id}")
 async def get_user(user_id: str):
     user = await db.users.find_one({"_id": user_id})
     if user:
         user["id"] = str(user["_id"])
+        user["_id"] = str(user["_id"])
         return user
     return {"error": "User not found"}
 
