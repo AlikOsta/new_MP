@@ -39,11 +39,13 @@ function App() {
   
   // User data
   const [currentUser, setCurrentUser] = useState({
-    id: 'demo-user',
+    id: '6855dc265afe51e45102bc68',
     telegram_id: 123456789,
     first_name: 'Alex',
+    last_name: 'Smith',
     username: 'alex',
-    language: 'ru'
+    language: 'ru',
+    theme: 'light'
   });
 
   useEffect(() => {
