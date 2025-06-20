@@ -636,6 +636,38 @@ def main():
     print("\n🔍 TESTING RECENT FIX #2 & #3: Favorites API endpoints and functionality")
     tester.test_favorites_functionality()
     
+    # Test view counter functionality
+    print("\n🔍 TESTING RECENT FIX #4: View counter functionality")
+    
+    # Test getting post details and incrementing views
+    if tester.created_job_post_id:
+        # Get initial view count
+        initial_success, initial_data = tester.run_test(
+            "Get Post Initial Views",
+            "GET",
+            f"api/posts/{tester.created_job_post_id}"
+        )
+        
+        if initial_success and initial_data:
+            initial_views = initial_data.get("views_count", 0)
+            print(f"Initial view count: {initial_views}")
+            
+            # Get post details again to increment views
+            increment_success, increment_data = tester.run_test(
+                "Increment Post Views",
+                "GET",
+                f"api/posts/{tester.created_job_post_id}"
+            )
+            
+            if increment_success and increment_data:
+                new_views = increment_data.get("views_count", 0)
+                print(f"New view count: {new_views}")
+                
+                if new_views > initial_views:
+                    print(f"✅ FIXED: View counter incremented from {initial_views} to {new_views}")
+                else:
+                    print(f"❌ FIX FAILED: View counter not incremented, still at {new_views}")
+    
     # Test user endpoint
     tester.test_get_user()
     
