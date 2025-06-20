@@ -422,6 +422,68 @@ class TelegramMarketplaceAPITester:
         
         return self.tests_passed == self.tests_run
 
+def test_favorites_functionality(self):
+        """Test favorites functionality"""
+        if not self.created_job_post_id:
+            print("❌ Cannot test favorites: No job post created")
+            return False, None
+        
+        # Test adding to favorites
+        add_data = {"user_id": "demo-user", "post_id": self.created_job_post_id}
+        add_success, add_data = self.run_test(
+            "Add to Favorites",
+            "POST",
+            "api/posts/favorites",
+            200,
+            data=add_data
+        )
+        
+        if not add_success:
+            return False, None
+        
+        # Test getting user favorites
+        get_success, get_data = self.run_test(
+            "Get User Favorites",
+            "GET",
+            "api/posts/favorites/demo-user"
+        )
+        
+        if get_success:
+            # Verify our post is in favorites
+            if isinstance(get_data, list):
+                found_post = any(post_id == self.created_job_post_id for post_id in get_data)
+                if found_post:
+                    print("✅ Verified: Post found in user favorites")
+                else:
+                    print("❌ Verification failed: Post not found in user favorites")
+            
+        # Test removing from favorites
+        remove_data = {"user_id": "demo-user", "post_id": self.created_job_post_id}
+        remove_success, remove_data = self.run_test(
+            "Remove from Favorites",
+            "DELETE",
+            "api/posts/favorites",
+            200,
+            data=remove_data
+        )
+        
+        if remove_success:
+            # Verify post was removed from favorites
+            _, verify_data = self.run_test(
+                "Verify Favorites Removal",
+                "GET",
+                "api/posts/favorites/demo-user"
+            )
+            
+            if isinstance(verify_data, list):
+                not_found = all(post_id != self.created_job_post_id for post_id in verify_data)
+                if not_found:
+                    print("✅ Verified: Post successfully removed from favorites")
+                else:
+                    print("❌ Verification failed: Post still found in favorites after removal")
+        
+        return add_success and get_success and remove_success, get_data
+
 def main():
     # Get the backend URL from the frontend .env file
     backend_url = "https://dd2133eb-15ad-4681-b6b7-b2b6cd0e455f.preview.emergentagent.com"
@@ -452,6 +514,9 @@ def main():
     
     # Test search functionality
     tester.test_search_posts()
+    
+    # Test favorites functionality
+    tester.test_favorites_functionality()
     
     # Test user endpoint
     tester.test_get_user()
