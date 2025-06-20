@@ -135,6 +135,24 @@ function App() {
     }
   };
 
+  // Загружаем избранное при старте приложения
+  const loadUserFavorites = async () => {
+    try {
+      const userFavorites = await apiService.getUserFavorites(currentUser.id);
+      const favoriteIds = userFavorites.map(post => post.id);
+      setFavorites(favoriteIds);
+    } catch (err) {
+      console.error('Error loading user favorites:', err);
+    }
+  };
+
+  // Загружаем избранное при инициализации
+  useEffect(() => {
+    if (currentUser.id) {
+      loadUserFavorites();
+    }
+  }, [currentUser.id]);
+
   const handleViewDetails = (post) => {
     setSelectedPost(post);
   };
