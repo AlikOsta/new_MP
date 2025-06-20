@@ -234,27 +234,33 @@ const PostDetails = ({ post: initialPost, onClose, currencies, cities, onAddToFa
           </div>
 
           {/* Action buttons */}
-          <div className="flex space-x-3">
-            <button
-              onClick={() => onAddToFavorites(post.id)}
-              className={`flex-1 py-3 px-4 rounded-lg border font-medium ${
-                isFavorite 
-                  ? 'bg-red-50 text-red-600 border-red-200' 
-                  : 'bg-gray-50 text-gray-700 border-gray-200'
-              }`}
-            >
-              {isFavorite ? '❤️ В избранном' : '🤍 В избранное'}
-            </button>
-            
-            {post.phone && (
-              <button
-                onClick={() => window.open(`tel:${post.phone}`)}
-                className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
-              >
-                📞 Позвонить
-              </button>
-            )}
-          </div>
+          {!isOwnPost && (
+            <div className="flex space-x-3">
+              {post.phone ? (
+                <>
+                  <button
+                    onClick={() => window.open(`https://t.me/${authorInfo?.username}`, '_blank')}
+                    className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200"
+                  >
+                    💬 Написать
+                  </button>
+                  <button
+                    onClick={() => window.open(`tel:${post.phone}`)}
+                    className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+                  >
+                    📞 Позвонить
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => window.open(`https://t.me/${authorInfo?.username}`, '_blank')}
+                  className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+                >
+                  💬 Написать
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
