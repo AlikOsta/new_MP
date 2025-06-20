@@ -1,42 +1,108 @@
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from motor.motor_asyncio import AsyncIOMotorClient
+from dotenv import load_dotenv
 
-# Import database
-from core.database import connect_to_mongo, close_mongo_connection
+# Load environment variables
+load_dotenv()
 
-# Import routers
-from api.users import router as users_router
-from api.categories import router as categories_router
-from api.posts import router as posts_router
-from api.packages import router as packages_router
+# Simple database connection
+client = AsyncIOMotorClient(os.getenv("MONGO_URL", "mongodb://localhost:27017"))
+db = client[os.getenv("DB_NAME", "telegram_marketplace")]
 
-# Import services
-from services.telegram_bot import webhook_handler, start_bot, stop_bot
-from services.moderation import moderate_post_background
+# Simple dependency
+async def get_database():
+    return db
+
+# Import API routers with simple approach
+from fastapi import APIRouter
+
+# Categories router
+categories_router = APIRouter(prefix="/api/categories", tags=["categories"])
+
+@categories_router.get("/super-rubrics")
+async def get_super_rubrics():
+    cursor = db.super_rubrics.find({"is_active": True})
+    result = []
+    async for doc in cursor:
+        doc["id"] = str(doc["_id"])
+        result.append(doc)
+    return result
+
+@categories_router.get("/cities")
+async def get_cities():
+    cursor = db.cities.find({"is_active": True})
+    result = []
+    async for doc in cursor:
+        doc["id"] = str(doc["_id"])
+        result.append(doc)
+    return result
+
+@categories_router.get("/currencies")
+async def get_currencies():
+    cursor = db.currencies.find({"is_active": True})
+    result = []
+    async for doc in cursor:
+        doc["id"] = str(doc["_id"])
+        result.append(doc)
+    return result
+
+# Posts router
+posts_router = APIRouter(prefix="/api/posts", tags=["posts"])
+
+@posts_router.get("/")
+async def get_posts(post_type: str = None, search: str = None):
+    query = {"status": 3}  # Active status
+    if post_type:
+        query["post_type"] = post_type
+    if search:
+        query["$or"] = [
+            {"title": {"$regex": search, "$options": "i"}},
+            {"description": {"$regex": search, "$options": "i"}}
+        ]
+    
+    cursor = db.posts.find(query).sort("created_at", -1).limit(20)
+    result = []
+    async for doc in cursor:
+        doc["id"] = str(doc["_id"])
+        result.append(doc)
+    return result
+
+# Packages router  
+packages_router = APIRouter(prefix="/api/packages", tags=["packages"])
+
+@packages_router.get("/")
+async def get_packages():
+    cursor = db.packages.find({"is_active": True})
+    result = []
+    async for doc in cursor:
+        doc["id"] = str(doc["_id"])
+        result.append(doc)
+    return result
+
+# Users router
+users_router = APIRouter(prefix="/api/users", tags=["users"])
+
+@users_router.get("/{user_id}")
+async def get_user(user_id: str):
+    user = await db.users.find_one({"_id": user_id})
+    if user:
+        user["id"] = str(user["_id"])
+        return user
+    return {"error": "User not found"}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
-    await connect_to_mongo()
-    
-    # Initialize default data
+    # Startup - Initialize default data
     await initialize_default_data()
-    
-    # Start telegram bot in background
-    asyncio.create_task(start_bot())
-    
     yield
-    
     # Shutdown
-    await stop_bot()
-    await close_mongo_connection()
+    client.close()
 
 app = FastAPI(
     title="Telegram Marketplace API",
