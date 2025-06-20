@@ -30,7 +30,8 @@ async def get_super_rubrics():
     cursor = db.super_rubrics.find({"is_active": True})
     result = []
     async for doc in cursor:
-        doc["id"] = str(doc["_id"])
+        doc["_id"] = str(doc["_id"])
+        doc["id"] = doc["_id"]
         result.append(doc)
     return result
 
@@ -39,7 +40,8 @@ async def get_cities():
     cursor = db.cities.find({"is_active": True})
     result = []
     async for doc in cursor:
-        doc["id"] = str(doc["_id"])
+        doc["_id"] = str(doc["_id"])
+        doc["id"] = doc["_id"]
         result.append(doc)
     return result
 
@@ -48,7 +50,8 @@ async def get_currencies():
     cursor = db.currencies.find({"is_active": True})
     result = []
     async for doc in cursor:
-        doc["id"] = str(doc["_id"])
+        doc["_id"] = str(doc["_id"])
+        doc["id"] = doc["_id"]
         result.append(doc)
     return result
 
