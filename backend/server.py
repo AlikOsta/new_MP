@@ -85,7 +85,7 @@ async def create_job_post(request: Request):
     
     # Add additional fields
     data["post_type"] = "job"
-    data["status"] = 1  # Draft status
+    data["status"] = 3  # Active status (вместо 1 - Draft)
     data["views_count"] = 0
     data["is_premium"] = False
     data["created_at"] = datetime.now().isoformat()
@@ -109,7 +109,7 @@ async def create_service_post(request: Request):
     
     # Add additional fields
     data["post_type"] = "service"
-    data["status"] = 1  # Draft status
+    data["status"] = 3  # Active status (вместо 1 - Draft)
     data["views_count"] = 0
     data["is_premium"] = False
     data["created_at"] = datetime.now().isoformat()
