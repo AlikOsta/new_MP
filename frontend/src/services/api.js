@@ -5,9 +5,10 @@ class ApiService {
     // Ensure we use the correct protocol
     let baseUrl = API_BASE_URL;
     
-    // If we're on HTTPS and the base URL is HTTP, convert it to HTTPS
-    if (window.location.protocol === 'https:' && baseUrl.startsWith('http:')) {
-      baseUrl = baseUrl.replace('http:', 'https:');
+    // If we're on HTTPS, always ensure the URL is HTTPS regardless of what's in the .env file
+    if (window.location.protocol === 'https:') {
+      // Force HTTPS for all requests when page is loaded over HTTPS
+      baseUrl = baseUrl.replace(/^http:\/\//i, 'https://');
     }
     
     const url = `${baseUrl}${endpoint}`;
