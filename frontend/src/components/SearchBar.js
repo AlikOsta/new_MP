@@ -7,16 +7,31 @@ const SearchBar = ({
   selectedCategory, 
   selectedCity, 
   onFilterChange,
-  activeTab 
+  activeTab,
+  onApplyFilters,
+  onResetFilters
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [sortBy, setSortBy] = useState('date');
-  const [experience, setExperience] = useState('');
-  const [schedule, setSchedule] = useState('');
-  const [workFormat, setWorkFormat] = useState('');
-  const [minSalary, setMinSalary] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
+  const [localFilters, setLocalFilters] = useState({
+    sortBy: 'date',
+    experience: '',
+    schedule: '',
+    workFormat: '',
+    minSalary: '',
+    maxPrice: '',
+    category: selectedCategory,
+    city: selectedCity
+  });
+
+  // Синхронизируем локальные фильтры с внешними
+  useEffect(() => {
+    setLocalFilters(prev => ({
+      ...prev,
+      category: selectedCategory,
+      city: selectedCity
+    }));
+  }, [selectedCategory, selectedCity]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -29,36 +44,37 @@ const SearchBar = ({
     onSearch(value);
   };
 
-  const handleSortChange = (value) => {
-    setSortBy(value);
-    onFilterChange('sort', value);
+  const handleFilterChange = (filterType, value) => {
+    setLocalFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
   };
 
-  const handleJobFilterChange = (filterType, value) => {
-    onFilterChange(filterType, value);
-    
-    switch(filterType) {
-      case 'experience':
-        setExperience(value);
-        break;
-      case 'schedule':
-        setSchedule(value);
-        break;
-      case 'work_format':
-        setWorkFormat(value);
-        break;
-      case 'min_salary':
-        setMinSalary(value);
-        break;
-    }
+  const handleApplyFilters = () => {
+    // Применяем все фильтры
+    Object.keys(localFilters).forEach(key => {
+      if (localFilters[key] !== '') {
+        onFilterChange(key, localFilters[key]);
+      }
+    });
+    onApplyFilters && onApplyFilters(localFilters);
+    setShowFilters(false);
   };
 
-  const handleServiceFilterChange = (filterType, value) => {
-    onFilterChange(filterType, value);
-    
-    if (filterType === 'max_price') {
-      setMaxPrice(value);
-    }
+  const handleResetFilters = () => {
+    const resetFilters = {
+      sortBy: 'date',
+      experience: '',
+      schedule: '',
+      workFormat: '',
+      minSalary: '',
+      maxPrice: '',
+      category: '',
+      city: ''
+    };
+    setLocalFilters(resetFilters);
+    onResetFilters && onResetFilters();
   };
 
   return (
