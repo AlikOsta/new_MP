@@ -84,7 +84,8 @@ async def get_packages():
     cursor = db.packages.find({"is_active": True})
     result = []
     async for doc in cursor:
-        doc["id"] = str(doc["_id"])
+        doc["_id"] = str(doc["_id"])
+        doc["id"] = doc["_id"]
         result.append(doc)
     return result
 
