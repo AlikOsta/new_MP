@@ -8,6 +8,7 @@ const CreatePostModal = ({
   categories, 
   cities, 
   currencies,
+  packages,
   onShowTariffs 
 }) => {
   const [formData, setFormData] = useState({
@@ -15,7 +16,6 @@ const CreatePostModal = ({
     description: '',
     price: '',
     currency_id: '',
-    super_rubric_id: '',
     city_id: '',
     phone: '',
     // Job specific
@@ -24,6 +24,9 @@ const CreatePostModal = ({
     work_format: ''
   });
 
+  const [selectedPackage, setSelectedPackage] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [errors, setErrors] = useState({});
 
   React.useEffect(() => {
@@ -45,6 +48,55 @@ const CreatePostModal = ({
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Проверяем размер файла (макс 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Файл слишком большой. Максимальный размер: 5MB');
+        return;
+      }
+
+      // Проверяем тип файла
+      if (!file.type.startsWith('image/')) {
+        alert('Пожалуйста, выберите изображение');
+        return;
+      }
+
+      setSelectedImage(file);
+      
+      // Создаем превью
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const compressImage = (file, maxWidth = 800, quality = 0.8) => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Вычисляем новые размеры
+        const ratio = Math.min(maxWidth / img.width, maxWidth / img.height);
+        canvas.width = img.width * ratio;
+        canvas.height = img.height * ratio;
+        
+        // Рисуем сжатое изображение
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // Конвертируем в blob
+        canvas.toBlob(resolve, 'image/jpeg', quality);
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -56,10 +108,6 @@ const CreatePostModal = ({
       newErrors.description = 'Описание обязательно';
     }
 
-    if (!formData.super_rubric_id) {
-      newErrors.super_rubric_id = 'Выберите категорию';
-    }
-
     if (!formData.city_id) {
       newErrors.city_id = 'Выберите город';
     }
@@ -68,21 +116,42 @@ const CreatePostModal = ({
       newErrors.currency_id = 'Выберите валюту';
     }
 
+    if (!selectedPackage) {
+      newErrors.package = 'Выберите тариф';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) {
       return;
     }
 
+    // Получаем ID категории на основе типа поста
+    const category = categories.find(cat => 
+      postType === 'job' ? cat.name_ru === 'Работа' : cat.name_ru === 'Услуги'
+    );
+
+    let imageUrl = null;
+    if (selectedImage) {
+      // Сжимаем изображение
+      const compressedImage = await compressImage(selectedImage);
+      // В реальном приложении здесь бы была загрузка на сервер
+      // Пока что просто создаем URL
+      imageUrl = URL.createObjectURL(compressedImage);
+    }
+
     // Convert price to number
     const submitData = {
       ...formData,
-      price: formData.price ? parseFloat(formData.price) : null
+      price: formData.price ? parseFloat(formData.price) : null,
+      super_rubric_id: category?.id,
+      image_url: imageUrl,
+      package_id: selectedPackage
     };
 
     onSubmit(submitData);
@@ -96,7 +165,7 @@ const CreatePostModal = ({
         <div className="sticky top-0 bg-white border-b px-6 py-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">
-              Новое объявление - {postType === 'job' ? 'Работа' : 'Услуги'}
+              {postType === 'job' ? 'Новая вакансия' : 'Новая услуга'}
             </h2>
             <button
               onClick={onClose}
@@ -118,7 +187,7 @@ const CreatePostModal = ({
               name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="например, Website Design"
+              placeholder={postType === 'job' ? 'например, Frontend разработчик' : 'например, Ремонт компьютеров'}
               className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 ${
                 errors.title ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -137,7 +206,7 @@ const CreatePostModal = ({
               name="description"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Describe your job or service..."
+              placeholder={postType === 'job' ? 'Опишите требования к кандидату...' : 'Опишите вашу услугу...'}
               rows={4}
               className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 ${
                 errors.description ? 'border-red-500' : 'border-gray-300'
@@ -148,58 +217,38 @@ const CreatePostModal = ({
             )}
           </div>
 
-          {/* Category and Price Row */}
+          {/* Price and Currency Row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Категория *
+                {postType === 'job' ? 'Зарплата' : 'Стоимость'}
               </label>
-              <select
-                name="super_rubric_id"
-                value={formData.super_rubric_id}
+              <input
+                type="number"
+                name="price"
+                value={formData.price}
                 onChange={handleChange}
-                className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 ${
-                  errors.super_rubric_id ? 'border-red-500' : 'border-gray-300'
-                }`}
-              >
-                <option value="">Выберите</option>
-                {categories.map(category => (
-                  <option key={category.id} value={category.id}>
-                    {category.name_ru}
-                  </option>
-                ))}
-              </select>
-              {errors.super_rubric_id && (
-                <p className="text-red-500 text-sm mt-1">{errors.super_rubric_id}</p>
-              )}
+                placeholder="50000"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Цена
+                Валюта
               </label>
-              <div className="flex">
-                <input
-                  type="number"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleChange}
-                  placeholder="500"
-                  className="flex-1 border border-r-0 rounded-l-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 border-gray-300"
-                />
-                <select
-                  name="currency_id"
-                  value={formData.currency_id}
-                  onChange={handleChange}
-                  className="border border-l-0 rounded-r-lg px-2 py-2 focus:ring-2 focus:ring-blue-500 border-gray-300 bg-white"
-                >
-                  {currencies.map(currency => (
-                    <option key={currency.id} value={currency.id}>
-                      {currency.symbol}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <select
+                name="currency_id"
+                value={formData.currency_id}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+              >
+                {currencies.map(currency => (
+                  <option key={currency.id} value={currency.id}>
+                    {currency.symbol} {currency.code}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -304,17 +353,79 @@ const CreatePostModal = ({
             </>
           )}
 
+          {/* Package Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Выберите тариф *
+            </label>
+            <div className="space-y-2">
+              {packages.map(pkg => (
+                <label key={pkg.id} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    name="package"
+                    value={pkg.id}
+                    checked={selectedPackage === pkg.id}
+                    onChange={(e) => setSelectedPackage(e.target.value)}
+                    className="mr-3"
+                  />
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">{pkg.name_ru}</span>
+                      <span className="text-blue-600 font-bold">
+                        {pkg.price === 0 ? 'Бесплатно' : `${pkg.price} ₽`}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {pkg.features_ru[0]} • {pkg.duration_days} дней
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
+            {errors.package && (
+              <p className="text-red-500 text-sm mt-1">{errors.package}</p>
+            )}
+          </div>
+
           {/* Photo Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Фото
             </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <div className="text-4xl mb-2">📷</div>
-              <div className="text-sm text-gray-600">
-                <p>Tap to Upload Photo</p>
-                <p className="text-xs">PNG, JPG, GIF up to 10MB</p>
-              </div>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+              {imagePreview ? (
+                <div className="relative">
+                  <img src={imagePreview} alt="Preview" className="w-full h-32 object-cover rounded" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedImage(null);
+                      setImagePreview(null);
+                    }}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <label htmlFor="image-upload" className="cursor-pointer">
+                    <div className="text-4xl mb-2">📷</div>
+                    <div className="text-sm text-gray-600">
+                      <p>Нажмите для выбора фото</p>
+                      <p className="text-xs">PNG, JPG до 5MB</p>
+                    </div>
+                  </label>
+                </div>
+              )}
             </div>
           </div>
 
@@ -336,13 +447,13 @@ const CreatePostModal = ({
           </div>
 
           {/* Tariffs link */}
-          <div className="text-center pt-4">
+          <div className="text-center pt-2">
             <button
               type="button"
               onClick={onShowTariffs}
               className="text-blue-600 text-sm hover:underline"
             >
-              Посмотреть тарифы
+              Подробнее о тарифах
             </button>
           </div>
         </form>
