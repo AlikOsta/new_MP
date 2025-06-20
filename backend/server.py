@@ -281,18 +281,238 @@ async def get_post_details(post_id: str, user_id: str = None):
     
     return post
 
-# Packages router  
-packages_router = APIRouter(prefix="/api/packages", tags=["packages"])
+# Admin router
+admin_router = APIRouter(prefix="/api/admin", tags=["admin"])
 
-@packages_router.get("/")
-async def get_packages():
-    cursor = db.packages.find({"is_active": True})
+# Simple admin authentication (in production use proper JWT)
+ADMIN_CREDENTIALS = {
+    "username": "Admin",
+    "password": "Admin"  # In production, use hashed passwords
+}
+
+@admin_router.post("/login")
+async def admin_login(request: Request):
+    """Admin login"""
+    data = await request.json()
+    username = data.get("username")
+    password = data.get("password")
+    
+    if username == ADMIN_CREDENTIALS["username"] and password == ADMIN_CREDENTIALS["password"]:
+        # In production, generate JWT token
+        return {
+            "success": True,
+            "token": "admin_token_123",
+            "user": {"username": username, "role": "admin"}
+        }
+    
+    return {"success": False, "error": "Invalid credentials"}
+
+@admin_router.get("/settings")
+async def get_app_settings():
+    """Get application settings"""
+    settings = await db.app_settings.find_one({}) or {}
+    
+    default_settings = {
+        "show_view_counts": True,
+        "telegram_bot_token": "***hidden***",
+        "mistral_api_key": "***hidden***",
+        "app_name": "Telegram Marketplace",
+        "app_description": "Платформа частных объявлений",
+        "free_posts_per_week": 1,
+        "moderation_enabled": True
+    }
+    
+    # Merge with defaults
+    result = {**default_settings, **settings}
+    result["id"] = str(settings.get("_id", "default"))
+    
+    return result
+
+@admin_router.put("/settings")
+async def update_app_settings(request: Request):
+    """Update application settings"""
+    data = await request.json()
+    
+    # Remove sensitive fields for logging
+    safe_data = {k: v for k, v in data.items() if k not in ["telegram_bot_token", "mistral_api_key"]}
+    print(f"Updating settings: {safe_data}")
+    
+    data["updated_at"] = datetime.now().isoformat()
+    
+    result = await db.app_settings.update_one(
+        {},
+        {"$set": data},
+        upsert=True
+    )
+    
+    return {"success": True, "message": "Settings updated"}
+
+# Statistics endpoints
+@admin_router.get("/stats/users")
+async def get_user_stats():
+    """Get user statistics"""
+    from datetime import datetime, timedelta
+    
+    now = datetime.now()
+    last_7_days = now - timedelta(days=7)
+    last_30_days = now - timedelta(days=30)
+    
+    # Total users
+    total_users = await db.users.count_documents({})
+    
+    # New users last 7 days
+    new_users_7d = await db.users.count_documents({
+        "created_at": {"$gte": last_7_days.isoformat()}
+    })
+    
+    # New users last 30 days
+    new_users_30d = await db.users.count_documents({
+        "created_at": {"$gte": last_30_days.isoformat()}
+    })
+    
+    # Daily new users for chart (last 7 days)
+    daily_users = []
+    for i in range(7):
+        day_start = (now - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
+        day_end = day_start + timedelta(days=1)
+        
+        count = await db.users.count_documents({
+            "created_at": {
+                "$gte": day_start.isoformat(),
+                "$lt": day_end.isoformat()
+            }
+        })
+        
+        daily_users.append({
+            "date": day_start.strftime("%Y-%m-%d"),
+            "count": count
+        })
+    
+    return {
+        "total_users": total_users,
+        "new_users_7d": new_users_7d,
+        "new_users_30d": new_users_30d,
+        "daily_users": list(reversed(daily_users))
+    }
+
+@admin_router.get("/stats/posts")
+async def get_post_stats():
+    """Get post statistics"""
+    from datetime import datetime, timedelta
+    
+    now = datetime.now()
+    last_7_days = now - timedelta(days=7)
+    last_30_days = now - timedelta(days=30)
+    
+    # Total posts
+    total_posts = await db.posts.count_documents({})
+    active_posts = await db.posts.count_documents({"status": 3})
+    
+    # New posts last 7 days
+    new_posts_7d = await db.posts.count_documents({
+        "created_at": {"$gte": last_7_days.isoformat()}
+    })
+    
+    # New posts last 30 days
+    new_posts_30d = await db.posts.count_documents({
+        "created_at": {"$gte": last_30_days.isoformat()}
+    })
+    
+    # Most popular posts (by views)
+    cursor = db.posts.find({"status": 3}).sort("views_count", -1).limit(10)
+    popular_posts = []
+    async for post in cursor:
+        # Get favorites count
+        favorites_count = await db.favorites.count_documents({"post_id": str(post["_id"])})
+        
+        popular_posts.append({
+            "id": str(post["_id"]),
+            "title": post["title"],
+            "views_count": post.get("views_count", 0),
+            "favorites_count": favorites_count,
+            "author_id": post.get("author_id", "")
+        })
+    
+    # Posts by type
+    job_posts = await db.posts.count_documents({"post_type": "job"})
+    service_posts = await db.posts.count_documents({"post_type": "service"})
+    
+    return {
+        "total_posts": total_posts,
+        "active_posts": active_posts,
+        "new_posts_7d": new_posts_7d,
+        "new_posts_30d": new_posts_30d,
+        "popular_posts": popular_posts,
+        "posts_by_type": {
+            "job": job_posts,
+            "service": service_posts
+        }
+    }
+
+# CRUD endpoints for admin management
+@admin_router.get("/currencies")
+async def admin_get_currencies():
+    """Get all currencies for admin"""
+    cursor = db.currencies.find({})
     result = []
     async for doc in cursor:
         doc["_id"] = str(doc["_id"])
         doc["id"] = doc["_id"]
         result.append(doc)
     return result
+
+@admin_router.post("/currencies")
+async def admin_create_currency(request: Request):
+    """Create currency"""
+    data = await request.json()
+    data["created_at"] = datetime.now().isoformat()
+    data["is_active"] = True
+    
+    result = await db.currencies.insert_one(data)
+    created_currency = await db.currencies.find_one({"_id": result.inserted_id})
+    created_currency["_id"] = str(created_currency["_id"])
+    created_currency["id"] = created_currency["_id"]
+    
+    return created_currency
+
+@admin_router.put("/currencies/{currency_id}")
+async def admin_update_currency(currency_id: str, request: Request):
+    """Update currency"""
+    from bson import ObjectId
+    data = await request.json()
+    data["updated_at"] = datetime.now().isoformat()
+    
+    try:
+        object_id = ObjectId(currency_id)
+    except:
+        return {"error": "Invalid currency ID"}
+    
+    result = await db.currencies.update_one(
+        {"_id": object_id},
+        {"$set": data}
+    )
+    
+    if result.matched_count == 0:
+        return {"error": "Currency not found"}
+    
+    return {"success": True, "message": "Currency updated"}
+
+@admin_router.delete("/currencies/{currency_id}")
+async def admin_delete_currency(currency_id: str):
+    """Delete currency"""
+    from bson import ObjectId
+    
+    try:
+        object_id = ObjectId(currency_id)
+    except:
+        return {"error": "Invalid currency ID"}
+    
+    result = await db.currencies.delete_one({"_id": object_id})
+    
+    if result.deleted_count == 0:
+        return {"error": "Currency not found"}
+    
+    return {"success": True, "message": "Currency deleted"}
 
 # Users router
 users_router = APIRouter(prefix="/api/users", tags=["users"])
@@ -392,7 +612,7 @@ app.add_middleware(
 # Include routers
 app.include_router(categories_router)
 app.include_router(posts_router)
-app.include_router(packages_router)
+app.include_router(admin_router)
 app.include_router(users_router)
 
 @app.get("/api/health")
