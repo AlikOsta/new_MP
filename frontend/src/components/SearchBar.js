@@ -127,8 +127,8 @@ const SearchBar = ({
               Сортировать по
             </label>
             <select
-              value={sortBy}
-              onChange={(e) => handleSortChange(e.target.value)}
+              value={localFilters.sortBy}
+              onChange={(e) => handleFilterChange('sortBy', e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
             >
               <option value="date">Дате публикации</option>
