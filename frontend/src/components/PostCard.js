@@ -21,7 +21,7 @@ const PostCard = ({ post, onAddToFavorites, onViewDetails, currencies, cities, i
     e.stopPropagation();
     try {
       await onAddToFavorites(post.id);
-      setIsFavorite(!isFavorite);
+      setLocalIsFavorite(!localIsFavorite);
     } catch (error) {
       console.error('Error toggling favorite:', error);
     }
