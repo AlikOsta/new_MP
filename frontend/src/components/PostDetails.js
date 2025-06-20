@@ -189,7 +189,7 @@ const PostDetails = ({ post: initialPost, onClose, currencies, cities, onAddToFa
           </div>
 
           {/* Author info */}
-          {authorInfo && (
+          {authorInfo && !authorInfo.error && (
             <div className="mb-6">
               <h3 className="text-lg font-semibold mb-3">Продавец</h3>
               <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
