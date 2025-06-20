@@ -2,29 +2,22 @@ import React, { useState, useEffect } from 'react';
 import PostCard from './PostCard';
 import * as apiService from '../services/api';
 
-const FavoritesPage = ({ favorites, currencies, cities, onViewDetails, onRemoveFromFavorites }) => {
+const FavoritesPage = ({ favorites, currencies, cities, onViewDetails, onRemoveFromFavorites, currentUser }) => {
   const [favoritePosts, setFavoritePosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadFavoritePosts();
-  }, [favorites]);
+  }, [currentUser]);
 
   const loadFavoritePosts = async () => {
-    if (favorites.length === 0) {
-      setFavoritePosts([]);
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
-      // Загружаем все объявления и фильтруем избранные
-      const allPosts = await apiService.getPosts({});
-      const filteredPosts = allPosts.filter(post => favorites.includes(post.id));
-      setFavoritePosts(filteredPosts);
+      const userFavorites = await apiService.getUserFavorites(currentUser.id);
+      setFavoritePosts(userFavorites);
     } catch (error) {
       console.error('Error loading favorite posts:', error);
+      setFavoritePosts([]);
     } finally {
       setLoading(false);
     }
