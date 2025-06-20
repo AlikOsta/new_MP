@@ -227,6 +227,7 @@ function App() {
                     onViewDetails={handleViewDetails}
                     currencies={currencies}
                     cities={cities}
+                    isFavorite={favorites.includes(post.id)}
                   />
                 ))
               )}
