@@ -195,7 +195,7 @@ export const getSubCategories = (superRubricId) => apiService.getSubCategories(s
 export const getCities = () => apiService.getCities();
 export const getCurrencies = () => apiService.getCurrencies();
 export const getPosts = (filters) => apiService.getPosts(filters);
-export const getPost = (postId) => apiService.getPost(postId);
+export const getPost = (postId, userId) => apiService.getPost(postId, userId);
 export const createJobPost = (postData, authorId) => apiService.createJobPost(postData, authorId);
 export const createServicePost = (postData, authorId) => apiService.createServicePost(postData, authorId);
 export const updatePost = (postId, postData) => apiService.updatePost(postId, postData);
