@@ -1,6 +1,23 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import * as apiService from '../services/api';
 
-const PostDetails = ({ post, onClose, currencies, cities, onAddToFavorites, isFavorite }) => {
+const PostDetails = ({ post: initialPost, onClose, currencies, cities, onAddToFavorites, isFavorite }) => {
+  const [post, setPost] = useState(initialPost);
+
+  useEffect(() => {
+    // Загружаем детали поста и увеличиваем счетчик просмотров
+    const loadPostDetails = async () => {
+      try {
+        const detailsData = await apiService.getPost(initialPost.id);
+        setPost(detailsData);
+      } catch (error) {
+        console.error('Error loading post details:', error);
+        setPost(initialPost);
+      }
+    };
+
+    loadPostDetails();
+  }, [initialPost.id]);
   const getCurrencySymbol = (currencyId) => {
     const currency = currencies.find(c => c.id === currencyId);
     return currency?.symbol || '₽';
