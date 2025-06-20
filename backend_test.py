@@ -462,6 +462,28 @@ class TelegramMarketplaceAPITester:
         
         return add_success and get_success and remove_success, get_data
         
+    def print_summary(self):
+        """Print test summary"""
+        print("\n" + "="*50)
+        print(f"📊 Test Summary: {self.tests_passed}/{self.tests_run} tests passed")
+        print("="*50)
+        
+        if self.tests_passed == self.tests_run:
+            print("✅ All tests passed!")
+        else:
+            print("❌ Some tests failed.")
+            
+            # Print failed tests
+            failed_tests = {name: result for name, result in self.test_results.items() 
+                           if result["status"] != "passed"}
+            
+            if failed_tests:
+                print("\nFailed tests:")
+                for name, result in failed_tests.items():
+                    print(f"- {name}: {result.get('error', 'Unknown error')}")
+        
+        return self.tests_passed == self.tests_run
+        
         # Test adding to favorites
         add_data = {"user_id": "demo-user", "post_id": self.created_job_post_id}
         add_success, add_data = self.run_test(
