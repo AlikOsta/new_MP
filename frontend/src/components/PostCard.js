@@ -68,8 +68,8 @@ const PostCard = ({ post, onAddToFavorites, onViewDetails, currencies, cities, i
           onClick={handleFavoriteClick}
           className="absolute top-2 right-2 w-6 h-6 bg-white bg-opacity-90 rounded-full flex items-center justify-center shadow"
         >
-          <span className={`text-xs ${isFavorite ? 'text-red-500' : 'text-gray-400'}`}>
-            {isFavorite ? '❤️' : '🤍'}
+          <span className={`text-xs ${localIsFavorite ? 'text-red-500' : 'text-gray-400'}`}>
+            {localIsFavorite ? '❤️' : '🤍'}
           </span>
         </button>
 
