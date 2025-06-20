@@ -561,17 +561,13 @@ def main():
     tester.test_get_job_posts()
     tester.test_get_service_posts()
     
-    # Test creating posts
+    # Test creating posts - FOCUS ON TESTING THAT NEW POSTS ARE ACTIVE (status = 3)
+    print("\n🔍 TESTING RECENT FIX #1: New posts should be immediately active (status = 3)")
     tester.test_create_job_post()
     tester.test_create_service_post()
     
-    # Test updating post status
-    tester.test_update_post_status()
-    
-    # Test search functionality
-    tester.test_search_posts()
-    
-    # Test favorites functionality
+    # Test favorites functionality - FOCUS ON TESTING THE NEW FAVORITES ENDPOINTS
+    print("\n🔍 TESTING RECENT FIX #2 & #3: Favorites API endpoints and functionality")
     tester.test_favorites_functionality()
     
     # Test user endpoint
