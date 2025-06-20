@@ -60,17 +60,34 @@ async def get_currencies():
 posts_router = APIRouter(prefix="/api/posts", tags=["posts"])
 
 @posts_router.get("/")
-async def get_posts(post_type: str = None, search: str = None):
-    query = {"status": 3}  # Active status
+async def get_posts(
+    post_type: str = None, 
+    search: str = None, 
+    author_id: str = None,
+    super_rubric_id: str = None,
+    city_id: str = None
+):
+    query = {"status": 3}  # Active status по умолчанию
+    
+    # Если запрашиваются посты конкретного автора, показываем все статусы
+    if author_id:
+        query = {"author_id": author_id}
+    else:
+        query = {"status": 3}  # Для общего списка только активные
+    
     if post_type:
         query["post_type"] = post_type
+    if super_rubric_id:
+        query["super_rubric_id"] = super_rubric_id
+    if city_id:
+        query["city_id"] = city_id
     if search:
         query["$or"] = [
             {"title": {"$regex": search, "$options": "i"}},
             {"description": {"$regex": search, "$options": "i"}}
         ]
     
-    cursor = db.posts.find(query).sort("created_at", -1).limit(20)
+    cursor = db.posts.find(query).sort("created_at", -1).limit(50)
     result = []
     async for doc in cursor:
         doc["_id"] = str(doc["_id"])
