@@ -148,6 +148,65 @@ async def update_post_status(post_id: str, request: Request):
     
     return {"message": "Status updated successfully"}
 
+# Favorites endpoints
+@posts_router.post("/favorites")
+async def add_to_favorites(request: Request):
+    """Add post to favorites"""
+    data = await request.json()
+    user_id = data.get("user_id")
+    post_id = data.get("post_id")
+    
+    if not user_id or not post_id:
+        return {"error": "user_id and post_id are required"}
+    
+    # Check if already in favorites
+    existing = await db.favorites.find_one({"user_id": user_id, "post_id": post_id})
+    if existing:
+        return {"error": "Already in favorites"}
+    
+    favorite_dict = {
+        "user_id": user_id, 
+        "post_id": post_id,
+        "created_at": datetime.now().isoformat()
+    }
+    await db.favorites.insert_one(favorite_dict)
+    return {"message": "Added to favorites"}
+
+@posts_router.delete("/favorites")
+async def remove_from_favorites(request: Request):
+    """Remove post from favorites"""
+    data = await request.json()
+    user_id = data.get("user_id")
+    post_id = data.get("post_id")
+    
+    if not user_id or not post_id:
+        return {"error": "user_id and post_id are required"}
+    
+    result = await db.favorites.delete_one({"user_id": user_id, "post_id": post_id})
+    if result.deleted_count == 0:
+        return {"error": "Not in favorites"}
+    return {"message": "Removed from favorites"}
+
+@posts_router.get("/favorites/{user_id}")
+async def get_user_favorites(user_id: str):
+    """Get user's favorite posts"""
+    # Get favorite post IDs
+    cursor = db.favorites.find({"user_id": user_id})
+    post_ids = [fav["post_id"] async for fav in cursor]
+    
+    if not post_ids:
+        return []
+    
+    # Get posts
+    cursor = db.posts.find({"_id": {"$in": post_ids}})
+    posts = []
+    async for doc in cursor:
+        doc["_id"] = str(doc["_id"])
+        doc["id"] = doc["_id"]
+        posts.append(doc)
+    
+    return posts
+
 # Packages router  
 packages_router = APIRouter(prefix="/api/packages", tags=["packages"])
 
