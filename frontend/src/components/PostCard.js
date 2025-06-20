@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const PostCard = ({ post, onAddToFavorites, currencies, cities }) => {
+const PostCard = ({ post, onAddToFavorites, onViewDetails, currencies, cities }) => {
   const [isFavorite, setIsFavorite] = useState(false);
 
   const getCurrencySymbol = (currencyId) => {
@@ -13,7 +13,8 @@ const PostCard = ({ post, onAddToFavorites, currencies, cities }) => {
     return city?.name_ru || 'Неизвестно';
   };
 
-  const handleFavoriteClick = async () => {
+  const handleFavoriteClick = async (e) => {
+    e.stopPropagation();
     try {
       await onAddToFavorites(post.id);
       setIsFavorite(!isFavorite);
@@ -27,132 +28,88 @@ const PostCard = ({ post, onAddToFavorites, currencies, cities }) => {
     return new Intl.NumberFormat('ru-RU').format(price);
   };
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return 'Сегодня';
+    if (diffDays === 2) return 'Вчера';
+    if (diffDays <= 7) return `${diffDays} дн. назад`;
+    return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div 
+      className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+      onClick={() => onViewDetails(post)}
+    >
       {/* Image */}
       <div className="relative">
         {post.image_url ? (
           <img 
             src={post.image_url} 
             alt={post.title}
-            className="w-full h-48 object-cover"
+            className="w-full h-24 object-cover"
           />
         ) : (
-          <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-            <span className="text-4xl text-gray-400">📷</span>
+          <div className="w-full h-24 bg-gray-200 flex items-center justify-center">
+            <span className="text-2xl text-gray-400">📷</span>
           </div>
         )}
         
         {/* Favorite button */}
         <button
           onClick={handleFavoriteClick}
-          className="absolute top-3 right-3 w-8 h-8 bg-white bg-opacity-90 rounded-full flex items-center justify-center shadow"
+          className="absolute top-2 right-2 w-6 h-6 bg-white bg-opacity-90 rounded-full flex items-center justify-center shadow"
         >
-          <span className={isFavorite ? 'text-red-500' : 'text-gray-400'}>
+          <span className={`text-xs ${isFavorite ? 'text-red-500' : 'text-gray-400'}`}>
             {isFavorite ? '❤️' : '🤍'}
           </span>
         </button>
 
         {/* Premium badge */}
         {post.is_premium && (
-          <div className="absolute top-3 left-3 bg-yellow-500 text-white px-2 py-1 rounded text-xs font-semibold">
+          <div className="absolute top-2 left-2 bg-yellow-500 text-white px-1 py-0.5 rounded text-xs font-semibold">
             Premium
           </div>
         )}
       </div>
 
       {/* Content */}
-      <div className="p-4">
-        <h3 className="font-semibold text-lg text-gray-900 mb-2 line-clamp-2">
+      <div className="p-3">
+        <h3 className="font-medium text-sm text-gray-900 mb-2 line-clamp-2 leading-tight">
           {post.title}
         </h3>
         
-        <p className="text-gray-600 text-sm mb-3 line-clamp-3">
-          {post.description}
-        </p>
-
         {/* Price */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="text-2xl font-bold text-blue-600">
-            {formatPrice(post.price)} {getCurrencySymbol(post.currency_id)}
-          </div>
-          
-          {/* Job specific info */}
-          {post.post_type === 'job' && post.experience && (
-            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-              {getExperienceLabel(post.experience)}
-            </span>
-          )}
+        <div className="text-lg font-bold text-blue-600 mb-2">
+          {formatPrice(post.price)} {getCurrencySymbol(post.currency_id)}
         </div>
 
-        {/* Location and views */}
-        <div className="flex items-center justify-between text-sm text-gray-500">
+        {/* Location and info */}
+        <div className="flex items-center justify-between text-xs text-gray-500">
           <div className="flex items-center">
             <span className="mr-1">📍</span>
-            {getCityName(post.city_id)}
+            <span className="truncate">{getCityName(post.city_id)}</span>
           </div>
           
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
             <span className="flex items-center">
               <span className="mr-1">👁️</span>
               {post.views_count || 0}
             </span>
-            
-            <span>
-              {new Date(post.created_at).toLocaleDateString('ru-RU')}
-            </span>
           </div>
         </div>
-
-        {/* Additional job info */}
-        {post.post_type === 'job' && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {post.schedule && (
-              <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                {getScheduleLabel(post.schedule)}
-              </span>
-            )}
-            {post.work_format && (
-              <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                {getWorkFormatLabel(post.work_format)}
-              </span>
-            )}
-          </div>
-        )}
+        
+        {/* Date */}
+        <div className="text-xs text-gray-400 mt-1">
+          {formatDate(post.created_at)}
+        </div>
       </div>
     </div>
   );
-};
-
-// Helper functions
-const getExperienceLabel = (experience) => {
-  const labels = {
-    'no_experience': 'Без опыта',
-    'up_to_1_year': 'До 1 года',
-    'from_1_to_3_years': '1-3 года',
-    'from_3_to_6_years': '3-6 лет',
-    'more_than_6_years': '6+ лет'
-  };
-  return labels[experience] || experience;
-};
-
-const getScheduleLabel = (schedule) => {
-  const labels = {
-    'full_time': 'Полный день',
-    'part_time': 'Частичная занятость',
-    'project': 'Проектная работа',
-    'freelance': 'Фриланс'
-  };
-  return labels[schedule] || schedule;
-};
-
-const getWorkFormatLabel = (format) => {
-  const labels = {
-    'office': 'Офис',
-    'remote': 'Удаленно',
-    'hybrid': 'Гибрид'
-  };
-  return labels[format] || format;
 };
 
 export default PostCard;
