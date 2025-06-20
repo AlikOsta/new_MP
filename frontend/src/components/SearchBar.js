@@ -6,10 +6,12 @@ const SearchBar = ({
   cities, 
   selectedCategory, 
   selectedCity, 
-  onFilterChange 
+  onFilterChange,
+  activeTab 
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState('date');
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -20,6 +22,12 @@ const SearchBar = ({
     const value = e.target.value;
     setSearchQuery(value);
     onSearch(value);
+  };
+
+  const handleSortChange = (value) => {
+    setSortBy(value);
+    // В будущем можно добавить сортировку
+    console.log('Sort by:', value);
   };
 
   return (
@@ -47,24 +55,7 @@ const SearchBar = ({
 
       {showFilters && (
         <div className="mt-3 p-4 bg-white border border-gray-200 rounded-lg space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Категория
-            </label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => onFilterChange('category', e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Все категории</option>
-              {categories.map(category => (
-                <option key={category.id} value={category.id}>
-                  {category.name_ru}
-                </option>
-              ))}
-            </select>
-          </div>
-
+          {/* Общие фильтры */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Город
@@ -82,6 +73,112 @@ const SearchBar = ({
               ))}
             </select>
           </div>
+
+          {/* Сортировка */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Сортировать по
+            </label>
+            <select
+              value={sortBy}
+              onChange={(e) => handleSortChange(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="date">Дате публикации</option>
+              <option value="price_asc">Цене (по возрастанию)</option>
+              <option value="price_desc">Цене (по убыванию)</option>
+              <option value="views">Популярности</option>
+            </select>
+          </div>
+
+          {/* Фильтры для работы */}
+          {activeTab === 'job' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Опыт работы
+                </label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                  <option value="">Любой</option>
+                  <option value="no_experience">Без опыта</option>
+                  <option value="up_to_1_year">До 1 года</option>
+                  <option value="from_1_to_3_years">1-3 года</option>
+                  <option value="from_3_to_6_years">3-6 лет</option>
+                  <option value="more_than_6_years">6+ лет</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  График работы
+                </label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                  <option value="">Любой</option>
+                  <option value="full_time">Полный день</option>
+                  <option value="part_time">Частичная занятость</option>
+                  <option value="project">Проектная работа</option>
+                  <option value="freelance">Фриланс</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Формат работы
+                </label>
+                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                  <option value="">Любой</option>
+                  <option value="office">Офис</option>
+                  <option value="remote">Удаленно</option>
+                  <option value="hybrid">Гибрид</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Зарплата от
+                </label>
+                <input
+                  type="number"
+                  placeholder="Например, 50000"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Фильтры для услуг */}
+          {activeTab === 'service' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Категория услуг
+                </label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => onFilterChange('category', e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Все категории</option>
+                  {categories.filter(cat => cat.name_ru === 'Услуги').map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.name_ru}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Стоимость до
+                </label>
+                <input
+                  type="number"
+                  placeholder="Например, 5000"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
