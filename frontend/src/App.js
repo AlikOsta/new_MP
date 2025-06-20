@@ -9,6 +9,8 @@ import PostCard from './components/PostCard';
 import CreatePostModal from './components/CreatePostModal';
 import ProfileModal from './components/ProfileModal';
 import TariffsModal from './components/TariffsModal';
+import PostDetails from './components/PostDetails';
+import FavoritesPage from './components/FavoritesPage';
 
 // Services
 import * as apiService from './services/api';
@@ -28,12 +30,13 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   
-  // Modals
+  // Pages and modals
+  const [currentPage, setCurrentPage] = useState('home'); // home, favorites, tariffs, profile
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
-  const [showTariffsModal, setShowTariffsModal] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [favorites, setFavorites] = useState([]);
   
-  // User data (would come from Telegram WebApp)
+  // User data
   const [currentUser, setCurrentUser] = useState({
     id: 'demo-user',
     telegram_id: 123456789,
@@ -47,8 +50,10 @@ function App() {
   }, []);
 
   useEffect(() => {
-    loadPosts();
-  }, [activeTab, searchQuery, selectedCategory, selectedCity]);
+    if (currentPage === 'home') {
+      loadPosts();
+    }
+  }, [activeTab, searchQuery, selectedCategory, selectedCity, currentPage]);
 
   const loadInitialData = async () => {
     try {
@@ -118,11 +123,24 @@ function App() {
 
   const handleAddToFavorites = async (postId) => {
     try {
-      await apiService.addToFavorites(currentUser.id, postId);
-      // Update UI feedback
+      if (favorites.includes(postId)) {
+        await apiService.removeFromFavorites(currentUser.id, postId);
+        setFavorites(favorites.filter(id => id !== postId));
+      } else {
+        await apiService.addToFavorites(currentUser.id, postId);
+        setFavorites([...favorites, postId]);
+      }
     } catch (err) {
-      console.error('Error adding to favorites:', err);
+      console.error('Error toggling favorites:', err);
     }
+  };
+
+  const handleViewDetails = (post) => {
+    setSelectedPost(post);
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedPost(null);
   };
 
   if (loading) {
@@ -153,68 +171,111 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-16">
       <Header 
         user={currentUser}
-        onProfileClick={() => setShowProfileModal(true)}
+        onProfileClick={() => setCurrentPage('profile')}
       />
       
       <main className="container mx-auto px-4 py-6 max-w-md">
-        <CategoryTabs 
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
-        
-        <SearchBar 
-          onSearch={handleSearch}
-          categories={categories}
-          cities={cities}
-          selectedCategory={selectedCategory}
-          selectedCity={selectedCity}
-          onFilterChange={handleFilterChange}
-        />
-        
-        <div className="space-y-4 mt-6">
-          {posts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">Объявления не найдены</p>
+        {currentPage === 'home' && (
+          <>
+            <CategoryTabs 
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
+            
+            <SearchBar 
+              onSearch={handleSearch}
+              categories={categories}
+              cities={cities}
+              selectedCategory={selectedCategory}
+              selectedCity={selectedCity}
+              onFilterChange={handleFilterChange}
+              activeTab={activeTab}
+            />
+            
+            <div className="grid grid-cols-2 gap-3 mt-6">
+              {posts.length === 0 ? (
+                <div className="col-span-2 text-center py-12">
+                  <p className="text-gray-500">Объявления не найдены</p>
+                </div>
+              ) : (
+                posts.map(post => (
+                  <PostCard 
+                    key={post.id}
+                    post={post}
+                    onAddToFavorites={handleAddToFavorites}
+                    onViewDetails={handleViewDetails}
+                    currencies={currencies}
+                    cities={cities}
+                  />
+                ))
+              )}
             </div>
-          ) : (
-            posts.map(post => (
-              <PostCard 
-                key={post.id}
-                post={post}
-                onAddToFavorites={handleAddToFavorites}
-                currencies={currencies}
-                cities={cities}
-              />
-            ))
-          )}
-        </div>
+          </>
+        )}
+        
+        {currentPage === 'favorites' && (
+          <FavoritesPage
+            favorites={favorites}
+            currencies={currencies}
+            cities={cities}
+            onViewDetails={handleViewDetails}
+            onRemoveFromFavorites={handleAddToFavorites}
+          />
+        )}
+        
+        {currentPage === 'tariffs' && (
+          <TariffsModal
+            isOpen={true}
+            onClose={() => setCurrentPage('home')}
+            packages={packages}
+            currencies={currencies}
+            onSelectPackage={(packageId) => {
+              console.log('Selected package:', packageId);
+              setCurrentPage('home');
+            }}
+          />
+        )}
+        
+        {currentPage === 'profile' && (
+          <ProfileModal
+            isOpen={true}
+            onClose={() => setCurrentPage('home')}
+            user={currentUser}
+            cities={cities}
+          />
+        )}
       </main>
       
-      {/* Floating Action Button */}
-      <button
-        onClick={() => setShowCreateModal(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 flex items-center justify-center text-2xl z-50"
-      >
-        +
-      </button>
+      {/* Floating Action Button - только на главной */}
+      {currentPage === 'home' && (
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="fixed bottom-20 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 flex items-center justify-center text-2xl z-50"
+        >
+          +
+        </button>
+      )}
       
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
         <div className="container mx-auto max-w-md px-4">
           <div className="flex justify-around py-3">
-            <button className="flex flex-col items-center text-xs text-blue-600">
+            <button 
+              className={`flex flex-col items-center text-xs ${currentPage === 'home' ? 'text-blue-600' : 'text-gray-500'}`}
+              onClick={() => setCurrentPage('home')}
+            >
               <span className="text-xl mb-1">🏠</span>
-              Главная
+              Домой
             </button>
             <button 
-              className="flex flex-col items-center text-xs text-gray-500"
-              onClick={() => {/* Navigate to search */}}
+              className={`flex flex-col items-center text-xs ${currentPage === 'favorites' ? 'text-blue-600' : 'text-gray-500'}`}
+              onClick={() => setCurrentPage('favorites')}
             >
-              <span className="text-xl mb-1">🔍</span>
-              Поиск
+              <span className="text-xl mb-1">❤️</span>
+              Избранное
             </button>
             <button 
               className="flex flex-col items-center text-xs text-gray-500"
@@ -224,15 +285,15 @@ function App() {
               Создать
             </button>
             <button 
-              className="flex flex-col items-center text-xs text-gray-500"
-              onClick={() => {/* Navigate to favorites */}}
+              className={`flex flex-col items-center text-xs ${currentPage === 'tariffs' ? 'text-blue-600' : 'text-gray-500'}`}
+              onClick={() => setCurrentPage('tariffs')}
             >
-              <span className="text-xl mb-1">❤️</span>
-              Избранное
+              <span className="text-xl mb-1">💎</span>
+              Тарифы
             </button>
             <button 
-              className="flex flex-col items-center text-xs text-gray-500"
-              onClick={() => setShowProfileModal(true)}
+              className={`flex flex-col items-center text-xs ${currentPage === 'profile' ? 'text-blue-600' : 'text-gray-500'}`}
+              onClick={() => setCurrentPage('profile')}
             >
               <span className="text-xl mb-1">👤</span>
               Профиль
@@ -251,32 +312,22 @@ function App() {
           categories={categories}
           cities={cities}
           currencies={currencies}
+          packages={packages}
           onShowTariffs={() => {
             setShowCreateModal(false);
-            setShowTariffsModal(true);
+            setCurrentPage('tariffs');
           }}
         />
       )}
       
-      {showProfileModal && (
-        <ProfileModal
-          isOpen={showProfileModal}
-          onClose={() => setShowProfileModal(false)}
-          user={currentUser}
-          cities={cities}
-        />
-      )}
-      
-      {showTariffsModal && (
-        <TariffsModal
-          isOpen={showTariffsModal}
-          onClose={() => setShowTariffsModal(false)}
-          packages={packages}
+      {selectedPost && (
+        <PostDetails
+          post={selectedPost}
+          onClose={handleCloseDetails}
           currencies={currencies}
-          onSelectPackage={(packageId) => {
-            console.log('Selected package:', packageId);
-            setShowTariffsModal(false);
-          }}
+          cities={cities}
+          onAddToFavorites={handleAddToFavorites}
+          isFavorite={favorites.includes(selectedPost.id)}
         />
       )}
     </div>
