@@ -269,15 +269,7 @@ function App() {
         )}
       </main>
       
-      {/* Floating Action Button - только на главной */}
-      {currentPage === 'home' && (
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="fixed bottom-20 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 flex items-center justify-center text-2xl z-50"
-        >
-          +
-        </button>
-      )}
+      {/* Модальные окна удалены круглую кнопку */}
       
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
