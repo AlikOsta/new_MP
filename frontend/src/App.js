@@ -224,6 +224,20 @@ function App() {
               selectedCity={selectedCity}
               onFilterChange={handleFilterChange}
               activeTab={activeTab}
+              onApplyFilters={(filters) => {
+                // Применяем все фильтры одновременно
+                Object.keys(filters).forEach(key => {
+                  if (filters[key] !== '') {
+                    handleFilterChange(key, filters[key]);
+                  }
+                });
+              }}
+              onResetFilters={() => {
+                // Сбрасываем все фильтры
+                setSelectedCategory('');
+                setSelectedCity('');
+                setFilters({});
+              }}
             />
             
             <div className="grid grid-cols-2 gap-3 mt-6">
