@@ -238,8 +238,8 @@ async def get_user_favorites(user_id: str):
     return posts
 
 @posts_router.get("/{post_id}")
-async def get_post_details(post_id: str):
-    """Get post details and increment views"""
+async def get_post_details(post_id: str, user_id: str = None):
+    """Get post details and increment views if not viewed by this user"""
     from bson import ObjectId
     
     try:
@@ -251,16 +251,33 @@ async def get_post_details(post_id: str):
     if not post:
         return {"error": "Post not found"}
     
-    # Increment views
-    await db.posts.update_one(
-        {"_id": object_id},
-        {"$inc": {"views_count": 1}}
-    )
+    # Increment views only if user hasn't viewed this post before
+    if user_id:
+        # Check if user has already viewed this post
+        existing_view = await db.post_views.find_one({
+            "post_id": post_id, 
+            "user_id": user_id
+        })
+        
+        if not existing_view:
+            # Increment views and record this view
+            await db.posts.update_one(
+                {"_id": object_id},
+                {"$inc": {"views_count": 1}}
+            )
+            
+            # Record that this user viewed this post
+            await db.post_views.insert_one({
+                "post_id": post_id,
+                "user_id": user_id,
+                "viewed_at": datetime.now().isoformat()
+            })
+            
+            post["views_count"] = post.get("views_count", 0) + 1
     
-    # Return updated post
+    # Return post details
     post["_id"] = str(post["_id"])
     post["id"] = post["_id"]
-    post["views_count"] = post.get("views_count", 0) + 1
     
     return post
 
