@@ -29,6 +29,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
+  const [filters, setFilters] = useState({});
   
   // Pages and modals
   const [currentPage, setCurrentPage] = useState('home'); // home, favorites, tariffs, profile
