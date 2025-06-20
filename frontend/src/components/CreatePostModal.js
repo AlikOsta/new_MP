@@ -9,15 +9,16 @@ const CreatePostModal = ({
   cities, 
   currencies,
   packages,
-  onShowTariffs 
+  onShowTariffs,
+  currentUser
 }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     price: '',
     currency_id: '',
-    city_id: '',
-    phone: '',
+    city_id: currentUser?.city_id || '',
+    phone: currentUser?.phone || '',
     // Job specific
     experience: '',
     schedule: '',
