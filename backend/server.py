@@ -207,6 +207,33 @@ async def get_user_favorites(user_id: str):
     
     return posts
 
+@posts_router.get("/{post_id}")
+async def get_post_details(post_id: str):
+    """Get post details and increment views"""
+    from bson import ObjectId
+    
+    try:
+        object_id = ObjectId(post_id)
+    except:
+        return {"error": "Invalid post ID"}
+    
+    post = await db.posts.find_one({"_id": object_id})
+    if not post:
+        return {"error": "Post not found"}
+    
+    # Increment views
+    await db.posts.update_one(
+        {"_id": object_id},
+        {"$inc": {"views_count": 1}}
+    )
+    
+    # Return updated post
+    post["_id"] = str(post["_id"])
+    post["id"] = post["_id"]
+    post["views_count"] = post.get("views_count", 0) + 1
+    
+    return post
+
 # Packages router  
 packages_router = APIRouter(prefix="/api/packages", tags=["packages"])
 
