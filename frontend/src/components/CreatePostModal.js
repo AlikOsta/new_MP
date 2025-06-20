@@ -37,7 +37,16 @@ const CreatePostModal = ({
         setFormData(prev => ({ ...prev, currency_id: rubCurrency.id }));
       }
     }
-  }, [currencies, formData.currency_id]);
+    
+    // Обновляем данные пользователя при изменении currentUser
+    if (currentUser) {
+      setFormData(prev => ({
+        ...prev,
+        city_id: currentUser.city_id || prev.city_id,
+        phone: currentUser.phone || prev.phone
+      }));
+    }
+  }, [currencies, formData.currency_id, currentUser]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
