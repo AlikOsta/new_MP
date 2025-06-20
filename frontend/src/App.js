@@ -330,6 +330,7 @@ function App() {
           cities={cities}
           currencies={currencies}
           packages={packages}
+          currentUser={currentUser}
           onShowTariffs={() => {
             setShowCreateModal(false);
             setCurrentPage('tariffs');
