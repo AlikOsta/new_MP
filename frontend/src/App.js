@@ -266,11 +266,10 @@ function App() {
         )}
         
         {currentPage === 'profile' && (
-          <ProfileModal
-            isOpen={true}
-            onClose={() => setCurrentPage('home')}
+          <ProfilePage
             user={currentUser}
             cities={cities}
+            onUpdateUser={setCurrentUser}
           />
         )}
       </main>
