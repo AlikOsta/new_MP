@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 
-const PostCard = ({ post, onAddToFavorites, onViewDetails, currencies, cities }) => {
-  const [isFavorite, setIsFavorite] = useState(false);
+const PostCard = ({ post, onAddToFavorites, onViewDetails, currencies, cities, isFavorite }) => {
+  const [localIsFavorite, setLocalIsFavorite] = useState(isFavorite);
+
+  useEffect(() => {
+    setLocalIsFavorite(isFavorite);
+  }, [isFavorite]);
 
   const getCurrencySymbol = (currencyId) => {
     const currency = currencies.find(c => c.id === currencyId);
