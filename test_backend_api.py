@@ -153,7 +153,8 @@ class BackendAPITester:
             "Access-Control-Request-Headers": "Content-Type"
         }
         
-        success, _ = self.run_test("CORS Preflight", "OPTIONS", "api/health", 204, headers=headers)
+        # FastAPI returns 200 for OPTIONS requests, not 204
+        success, _ = self.run_test("CORS Preflight", "OPTIONS", "api/health", 200, headers=headers)
         
         if success:
             # Make a regular request and check CORS headers
