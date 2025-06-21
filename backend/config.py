@@ -14,6 +14,9 @@ DATABASE_PATH = os.environ.get('DATABASE_PATH', 'telegram_marketplace.db')
 ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
 
+# Application Configuration
+SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-for-jwt-change-in-production')
+
 # Telegram Bot configuration
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
