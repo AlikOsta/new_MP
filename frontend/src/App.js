@@ -184,18 +184,26 @@ function App() {
       setShowCreateModal(false);
       loadPosts();
       
+      // Показываем подходящее сообщение
       if (selectedPackage && selectedPackage.price === 0) {
-        alert('Объявление отправлено на модерацию!');
+        // Бесплатный пост отправлен на модерацию
+        console.log('Free post submitted for moderation');
       } else if (selectedPackage && selectedPackage.price > 0) {
-        alert('Объявление создано! После оплаты оно будет отправлено на модерацию.');
+        // Платный пост создан, ожидается оплата
+        console.log('Paid post created, payment required');
       }
     } catch (err) {
       console.error('Error creating post:', err);
       
       if (err.message && err.message.includes('Free post not available')) {
-        alert('Бесплатный пост пока недоступен. Выберите платный тариф или попробуйте позже.');
+        // Бесплатный пост недоступен
+        console.log('Free post not available yet');
+      } else if (err.message && err.message.includes('Authentication required')) {
+        // Требуется авторизация
+        console.log('Authentication required');
       } else {
-        alert('Ошибка при создании объявления');
+        // Общая ошибка
+        console.log('Error creating post');
       }
     }
   };
