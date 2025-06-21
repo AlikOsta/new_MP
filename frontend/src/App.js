@@ -171,6 +171,28 @@ function App() {
     if (!requireAuth('create post')) return;
     
     try {
+      // Проверяем можно ли создать бесплатный пост
+      if (postData.package_id === 'free-package') {
+        const freePostCheck = await apiService.checkFreePostAvailability(currentUser.id);
+        if (!freePostCheck.can_create_free) {
+          const nextDate = new Date(freePostCheck.next_free_at).toLocaleDateString('ru-RU');
+          alert(`Бесплатный пост можно будет создать ${nextDate}`);
+          return;
+        }
+      }
+      
+      // Если выбран платный тариф, инициируем оплату
+      const selectedPackage = packages.find(pkg => pkg.id === postData.package_id);
+      if (selectedPackage && selectedPackage.price > 0) {
+        const paymentResult = await apiService.purchasePackage(currentUser.id, postData.package_id);
+        
+        // В реальном приложении здесь бы открылся Telegram Payment
+        alert(`Инициирована оплата ${selectedPackage.price} ₽. В реальном приложении откроется Telegram Payment.`);
+        
+        // Пока что для демо продолжаем создание поста
+        console.log('Payment initiated:', paymentResult);
+      }
+      
       if (activeTab === 'job') {
         await apiService.createJobPost(postData, currentUser.id);
       } else {
@@ -179,9 +201,20 @@ function App() {
       
       setShowCreateModal(false);
       loadPosts();
+      
+      if (selectedPackage && selectedPackage.price === 0) {
+        alert('Объявление отправлено на модерацию!');
+      } else if (selectedPackage && selectedPackage.price > 0) {
+        alert('Объявление создано! После оплаты оно будет отправлено на модерацию.');
+      }
     } catch (err) {
       console.error('Error creating post:', err);
-      alert('Ошибка при создании объявления');
+      
+      if (err.message && err.message.includes('Free post not available')) {
+        alert('Бесплатный пост пока недоступен. Выберите платный тариф или попробуйте позже.');
+      } else {
+        alert('Ошибка при создании объявления');
+      }
     }
   };
 
