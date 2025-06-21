@@ -105,22 +105,19 @@
 ## user_problem_statement: "Подготовка проекта к продакшену: удаление демо-контента, фиктивных пользователей, и системы авторизации"
 
 ## backend:
-  - task: "FastAPI сервер с полным API"
+  - task: "Очистка демо данных из базы"
     implemented: true
     working: true
-    file: "server.py"
+    file: "database cleanup"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
         - working: true
           agent: "main"
-          comment: "Полный API с endpoints для категорий, постов, пользователей, избранного, админки. MongoDB интеграция работает."
-        - working: true
-          agent: "testing"
-          comment: "Админ-панель API протестирована. Все endpoints работают корректно после исправления ObjectId сериализации."
+          comment: "Удалены все демо пользователи, тестовые посты, связанные записи (избранное, просмотры, тарифы)"
 
-  - task: "Админ панель API"
+  - task: "Удаление hardcoded admin credentials"
     implemented: true
     working: true
     file: "server.py"
@@ -130,15 +127,9 @@
     status_history:
         - working: true
           agent: "main"
-          comment: "Админ API создан: авторизация, статистика, настройки, CRUD валют."
-        - working: true
-          agent: "testing"
-          comment: "Все админ endpoints протестированы: авторизация ✅, статистика ✅, настройки ✅, CRUD валют ✅"
-        - working: true
-          agent: "testing"
-          comment: "Протестирована админ-панель Telegram Marketplace. Большинство API работают корректно, но есть проблема с получением обновленных настроек (500 Internal Server Error). Ошибка связана с ObjectId в MongoDB, который не может быть сериализован в JSON. Остальные функции админки (авторизация, статистика, CRUD валют) работают правильно."
-          
-  - task: "Система тарифов (Packages API)"
+          comment: "Заменили hardcoded admin credentials на переменные окружения"
+
+  - task: "Обязательная авторизация для создания постов"
     implemented: true
     working: true
     file: "server.py"
@@ -147,20 +138,8 @@
     needs_retesting: false
     status_history:
         - working: true
-          agent: "testing"
-          comment: "Протестированы все endpoints системы тарифов: GET /api/packages/, GET /api/packages/check-free-post/{user_id}, POST /api/packages/purchase. Все работают корректно. Обнаружены незначительные расхождения в расчете дат: следующий бесплатный пост доступен через 6 дней вместо 7, а следующий буст через 2 дня вместо 3."
-        - working: true
-          agent: "testing"
-          comment: "Протестировано создание постов с разными тарифами: бесплатный, с фото, с выделением, с бустом. Все атрибуты постов (has_photo, has_highlight, has_boost) устанавливаются правильно. Срок жизни постов соответствует тарифу."
-        - working: true
-          agent: "testing"
-          comment: "Проверены ограничения бесплатных постов: после создания бесплатного поста второй сразу недоступен, правильно возвращается дата следующего бесплатного поста."
-        - working: true
-          agent: "testing"
-          comment: "Протестирован Admin API для тарифов: GET /api/admin/packages, POST /api/admin/packages, PUT /api/admin/packages/{id}, DELETE /api/admin/packages/{id}. Все операции работают корректно, включая правильную конвертацию features из массива в строку и обратно."
-        - working: true
-          agent: "testing"
-          comment: "Проверены записи в базе данных: user_free_posts создаются для бесплатных постов, user_packages для платных, post_boost_schedule для постов с бустом. Все foreign key ограничения работают корректно."
+          agent: "main"
+          comment: "Убрали default demo-user, теперь требуется X-Author-ID header для создания постов"
 
 ## frontend:
   - task: "React приложение с полным UI"
