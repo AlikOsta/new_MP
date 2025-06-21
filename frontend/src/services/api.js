@@ -173,9 +173,12 @@ class ApiService {
 
   // Purchase package (initiate payment)
   async purchasePackage(userId, packageId) {
-    return this.request('/api/packages/purchase', 'POST', {
-      user_id: userId,
-      package_id: packageId
+    return this.request('/api/packages/purchase', {
+      method: 'POST',
+      body: {
+        user_id: userId,
+        package_id: packageId
+      }
     });
   }
 
