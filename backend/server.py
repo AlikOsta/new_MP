@@ -93,7 +93,9 @@ async def get_posts(
 async def create_job_post(request: Request):
     """Create a job post"""
     data = await request.json()
-    author_id = request.headers.get("X-Author-ID", "demo-user")
+    author_id = request.headers.get("X-Author-ID")
+    if not author_id:
+        return {"error": "Authentication required"}
     package_id = data.get("package_id")
     
     # Check if user can create free post
