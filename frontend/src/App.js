@@ -83,7 +83,7 @@ function App() {
   const handleTelegramAuth = () => {
     // This function is called when user needs to authenticate
     // In Telegram WebApp, this would typically not be needed as user is already authenticated
-    alert('Пожалуйста, откройте приложение через Telegram Bot');
+    console.log('Please open the app through Telegram Bot');
   };
 
   const handleLogout = () => {
