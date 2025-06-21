@@ -86,6 +86,21 @@ async def get_posts(
 async def create_job_post(request: Request):
     """Create a job post"""
     data = await request.json()
+    author_id = request.headers.get("X-Author-ID", "demo-user")
+    package_id = data.get("package_id")
+    
+    # Check if user can create free post
+    if not package_id or package_id == "free-package":
+        can_create_result = await check_free_post_availability(author_id)
+        if not can_create_result["can_create_free"]:
+            return {"error": "Free post not available yet", "next_free_at": can_create_result["next_free_at"]}
+    
+    # Get package details
+    package = await db.fetchone("SELECT * FROM packages WHERE id = ?", [package_id]) if package_id else None
+    
+    # Calculate expiration date
+    lifetime_days = package["post_lifetime_days"] if package else 30
+    expires_at = (datetime.now() + timedelta(days=lifetime_days)).isoformat()
     
     # Add additional fields
     post_data = {
@@ -96,16 +111,45 @@ async def create_job_post(request: Request):
         "currency_id": data.get("currency_id"),
         "city_id": data.get("city_id"),
         "super_rubric_id": data.get("super_rubric_id"),
-        "author_id": request.headers.get("X-Author-ID", "demo-user"),
-        "status": 3,  # Active status
+        "author_id": author_id,
+        "status": 2 if package and package["price"] == 0 else 1,  # Free posts go to moderation, paid stay draft
+        "package_id": package_id,
+        "has_photo": package["has_photo"] if package else False,
+        "has_highlight": package["has_highlight"] if package else False,
+        "has_boost": package["has_boost"] if package else False,
+        "post_lifetime_days": lifetime_days,
+        "expires_at": expires_at,
         "views_count": 0,
-        "is_premium": False,
+        "is_premium": bool(package and package["price"] > 0),
+        "ai_moderation_passed": False,
         "created_at": datetime.now().isoformat(),
         "updated_at": datetime.now().isoformat()
     }
     
     post_id = await db.insert("posts", post_data)
     post_data["id"] = post_id
+    
+    # If free post, record usage
+    if not package_id or package_id == "free-package":
+        next_free_date = (datetime.now() + timedelta(days=7)).isoformat()
+        free_post_data = {
+            "user_id": author_id,
+            "created_at": datetime.now().isoformat(),
+            "next_free_post_at": next_free_date
+        }
+        await db.insert("user_free_posts", free_post_data)
+    
+    # If boost package, schedule boosts
+    if package and package["has_boost"]:
+        boost_data = {
+            "post_id": post_id,
+            "next_boost_at": (datetime.now() + timedelta(days=package["boost_interval_days"])).isoformat(),
+            "boost_count": 0,
+            "is_active": True,
+            "created_at": datetime.now().isoformat()
+        }
+        await db.insert("post_boost_schedule", boost_data)
+    
     return post_data
 
 @posts_router.post("/services")
