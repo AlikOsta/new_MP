@@ -1442,11 +1442,27 @@ class TelegramMarketplaceAPITester:
             else:
                 print(f"❌ Verification failed: Found {posts_stats_data['total_posts']} posts in admin stats - demo posts may not have been cleaned up")
         
-        return posts_empty and users_empty and posts_stats_empty, {
-            "posts": posts_data,
-            "users_stats": users_data,
-            "posts_stats": posts_stats_data
-        }
+    def print_summary(self):
+        """Print test summary"""
+        print("\n" + "="*50)
+        print(f"📊 Test Summary: {self.tests_passed}/{self.tests_run} tests passed")
+        print("="*50)
+        
+        if self.tests_passed == self.tests_run:
+            print("✅ All tests passed!")
+        else:
+            print("❌ Some tests failed.")
+            
+            # Print failed tests
+            failed_tests = {name: result for name, result in self.test_results.items() 
+                           if result["status"] != "passed"}
+            
+            if failed_tests:
+                print("\nFailed tests:")
+                for name, result in failed_tests.items():
+                    print(f"- {name}: {result.get('error', 'Unknown error')}")
+        
+        return self.tests_passed == self.tests_run
 
 def test_auth_required_for_posts(self):
     """Test that authentication is required for creating posts"""
