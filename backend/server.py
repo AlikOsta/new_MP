@@ -153,6 +153,42 @@ async def create_job_post(request: Request):
         }
         await db.insert("post_boost_schedule", boost_data)
     
+    # Start AI moderation process
+    try:
+        moderation_result = await moderate_post_content(post_data)
+        
+        # Log AI moderation result
+        if moderation_result.get("ai_result"):
+            ai_log_data = {
+                "post_id": post_id,
+                "ai_decision": moderation_result["ai_result"]["decision"],
+                "ai_confidence": moderation_result["ai_result"]["confidence"],
+                "ai_reason": moderation_result["ai_result"]["reason"],
+                "moderated_at": datetime.now().isoformat()
+            }
+            await db.insert("ai_moderation_log", ai_log_data)
+        
+        # Update post status based on moderation result
+        final_status = moderation_result.get("final_status", 3)
+        await db.update("posts", {
+            "status": final_status,
+            "ai_moderation_passed": moderation_result["decision"] != "rejected"
+        }, "id = ?", [post_id])
+        
+        # Send notification to moderator if needed
+        if moderation_result.get("should_notify_moderator") and telegram_notifier:
+            await telegram_notifier.send_moderation_request(post_data, moderation_result.get("ai_result"))
+        
+        # Update post_data with final status for response
+        post_data["status"] = final_status
+        post_data["ai_moderation_passed"] = moderation_result["decision"] != "rejected"
+        
+    except Exception as e:
+        print(f"Error in moderation process: {str(e)}")
+        # If moderation fails, set status to manual review
+        await db.update("posts", {"status": 3}, "id = ?", [post_id])
+        post_data["status"] = 3
+    
     return post_data
 
 @posts_router.post("/services")
