@@ -53,14 +53,31 @@ function App() {
     const initTelegramAuth = () => {
       setIsAuthenticating(true);
       
+      console.log('🔍 Initializing Telegram WebApp auth...');
+      
       // Check if running in Telegram WebApp
       if (window.Telegram?.WebApp) {
         const tg = window.Telegram.WebApp;
+        console.log('✅ Telegram WebApp object found');
+        
         tg.ready();
+        console.log('📱 Telegram WebApp ready');
+        
+        // Log all available data for debugging
+        console.log('🔬 Telegram WebApp data:', {
+          initData: tg.initData,
+          initDataUnsafe: tg.initDataUnsafe,
+          version: tg.version,
+          platform: tg.platform,
+          colorScheme: tg.colorScheme,
+          isExpanded: tg.isExpanded,
+        });
         
         // Get user data from Telegram WebApp
         const user = tg.initDataUnsafe?.user;
         if (user) {
+          console.log('👤 User data found:', user);
+          
           const userData = {
             id: user.id.toString(),
             telegram_id: user.id,
@@ -70,14 +87,77 @@ function App() {
             language: user.language_code || 'ru',
             theme: tg.colorScheme || 'light'
           };
+          
           setCurrentUser(userData);
+          console.log('✅ User authenticated:', userData);
+        } else {
+          console.log('❌ No user data in initDataUnsafe');
+          
+          // Try alternative methods
+          if (tg.initData) {
+            console.log('🔄 Trying to parse initData manually...');
+            try {
+              // Parse initData manually if needed
+              const urlParams = new URLSearchParams(tg.initData);
+              const userParam = urlParams.get('user');
+              if (userParam) {
+                const parsedUser = JSON.parse(decodeURIComponent(userParam));
+                console.log('👤 User from initData:', parsedUser);
+                
+                const userData = {
+                  id: parsedUser.id.toString(),
+                  telegram_id: parsedUser.id,
+                  first_name: parsedUser.first_name,
+                  last_name: parsedUser.last_name || '',
+                  username: parsedUser.username || '',
+                  language: parsedUser.language_code || 'ru',
+                  theme: tg.colorScheme || 'light'
+                };
+                
+                setCurrentUser(userData);
+                console.log('✅ User authenticated via initData:', userData);
+              }
+            } catch (e) {
+              console.error('❌ Error parsing initData:', e);
+            }
+          }
+        }
+        
+        // Configure WebApp
+        tg.expand();
+        tg.MainButton.hide();
+        tg.BackButton.hide();
+        
+      } else {
+        console.log('❌ Not running in Telegram WebApp');
+        console.log('🌐 Current environment:', {
+          userAgent: navigator.userAgent,
+          location: window.location.href,
+          telegram: !!window.Telegram,
+          telegramWebApp: !!window.Telegram?.WebApp
+        });
+        
+        // For testing outside Telegram, create a mock user
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🧪 Development mode: creating mock user');
+          const mockUser = {
+            id: "123456789",
+            telegram_id: 123456789,
+            first_name: "Test",
+            last_name: "User",
+            username: "testuser",
+            language: "ru",
+            theme: "light"
+          };
+          setCurrentUser(mockUser);
         }
       }
       
       setIsAuthenticating(false);
     };
 
-    initTelegramAuth();
+    // Add small delay to ensure Telegram WebApp SDK is loaded
+    setTimeout(initTelegramAuth, 100);
   }, []);
 
   const handleTelegramAuth = () => {
