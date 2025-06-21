@@ -220,6 +220,8 @@ function App() {
 
   // Загружаем избранное при старте приложения
   const loadUserFavorites = async () => {
+    if (!currentUser) return; // Только для авторизованных пользователей
+    
     try {
       const userFavorites = await apiService.getUserFavorites(currentUser.id);
       const favoriteIds = userFavorites.map(post => post.id);
@@ -231,22 +233,22 @@ function App() {
 
   // Загружаем избранное при инициализации
   useEffect(() => {
-    if (currentUser.id) {
+    if (currentUser?.id && !isAuthenticating) {
       loadUserFavorites();
     }
-  }, [currentUser.id]);
+  }, [currentUser?.id, isAuthenticating]);
 
   // Применяем тему при загрузке
   useEffect(() => {
     // Загружаем тему из localStorage или используем тему пользователя
-    const savedTheme = localStorage.getItem('theme') || currentUser.theme || 'light';
+    const savedTheme = localStorage.getItem('theme') || currentUser?.theme || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
     
     // Обновляем пользователя если тема отличается
-    if (savedTheme !== currentUser.theme) {
+    if (currentUser && savedTheme !== currentUser.theme) {
       setCurrentUser(prev => ({ ...prev, theme: savedTheme }));
     }
-  }, []);
+  }, [currentUser?.theme]);
 
   const handleViewDetails = (post) => {
     setSelectedPost(post);
