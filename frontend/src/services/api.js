@@ -1,6 +1,19 @@
 const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
 class ApiService {
+  constructor() {
+    this.authToken = localStorage.getItem('telegram_auth_token');
+  }
+
+  setAuthToken(token) {
+    this.authToken = token;
+    if (token) {
+      localStorage.setItem('telegram_auth_token', token);
+    } else {
+      localStorage.removeItem('telegram_auth_token');
+    }
+  }
+
   async request(endpoint, options = {}) {
     // Ensure we use the correct protocol
     let baseUrl = API_BASE_URL;
