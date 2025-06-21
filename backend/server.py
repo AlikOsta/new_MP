@@ -22,6 +22,9 @@ from database import db
 # AI Moderation import
 from ai_moderation import init_moderation_services, moderate_post_content, mistral_moderator, telegram_notifier
 
+# Background tasks import
+from background_tasks import start_background_tasks, stop_background_tasks, manual_expire_posts, manual_boost_posts
+
 # Import API routers with simple approach
 from fastapi import APIRouter
 
