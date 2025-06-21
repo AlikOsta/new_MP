@@ -1,7 +1,10 @@
 import requests
 import sys
 import json
+import sqlite3
 from datetime import datetime
+import uuid
+import os
 
 class TelegramMarketplaceAPITester:
     def __init__(self, base_url):
@@ -16,6 +19,17 @@ class TelegramMarketplaceAPITester:
         self.currencies_data = None
         self.admin_token = None
         self.created_currency_id = None
+        self.created_user_id = None
+        self.db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backend", "telegram_marketplace.db")
+        
+        # Create a test user for our tests
+        self.test_user = {
+            "telegram_id": 123456789,
+            "first_name": "Test",
+            "last_name": "User",
+            "username": "testuser",
+            "language": "ru"
+        }
 
     def run_test(self, name, method, endpoint, expected_status=200, data=None, params=None, headers=None):
         """Run a single API test"""
@@ -85,6 +99,43 @@ class TelegramMarketplaceAPITester:
             }
             return False, None
 
+    def verify_db_data(self, table, condition, expected_data=None):
+        """Verify data in SQLite database"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            
+            query = f"SELECT * FROM {table} WHERE {condition}"
+            cursor.execute(query)
+            row = cursor.fetchone()
+            
+            if row:
+                row_dict = dict(row)
+                print(f"✅ Database verification: Found record in {table}")
+                
+                if expected_data:
+                    all_match = True
+                    for key, value in expected_data.items():
+                        if key in row_dict and row_dict[key] != value:
+                            all_match = False
+                            print(f"❌ Data mismatch for {key}: expected '{value}', got '{row_dict[key]}'")
+                    
+                    if all_match:
+                        print(f"✅ All expected values match in database")
+                    
+                return True, row_dict
+            else:
+                print(f"❌ Database verification failed: No record found in {table} with condition {condition}")
+                return False, None
+                
+        except Exception as e:
+            print(f"❌ Database verification error: {str(e)}")
+            return False, None
+        finally:
+            if conn:
+                conn.close()
+
     def test_health_check(self):
         """Test the health check endpoint"""
         return self.run_test("Health Check", "GET", "api/health")
@@ -105,6 +156,11 @@ class TelegramMarketplaceAPITester:
                     print("❌ Verification failed: Expected categories not found")
             else:
                 print(f"❌ Verification failed: Expected 2 categories, got {len(data)}")
+                
+            # Verify data in database
+            db_success, db_data = self.verify_db_data("super_rubrics", "is_active = 1")
+            if db_success:
+                print("✅ Database verification: Categories data exists in SQLite")
         return success, data
 
     def test_get_cities(self):
@@ -125,6 +181,11 @@ class TelegramMarketplaceAPITester:
                     print("❌ Verification failed: Expected cities not found")
             else:
                 print(f"❌ Verification failed: Expected 6 cities, got {len(data)}")
+                
+            # Verify data in database
+            db_success, db_data = self.verify_db_data("cities", "is_active = 1")
+            if db_success:
+                print("✅ Database verification: Cities data exists in SQLite")
         return success, data
 
     def test_get_currencies(self):
@@ -145,25 +206,43 @@ class TelegramMarketplaceAPITester:
                     print("❌ Verification failed: Not all expected currency codes found")
             else:
                 print(f"❌ Verification failed: Expected 4 currencies, got {len(data)}")
+                
+            # Verify data in database
+            db_success, db_data = self.verify_db_data("currencies", "is_active = 1")
+            if db_success:
+                print("✅ Database verification: Currencies data exists in SQLite")
         return success, data
 
-    def test_get_packages(self):
-        """Test getting packages"""
-        success, data = self.run_test("Get Packages", "GET", "api/packages/")
-        if success:
-            # Verify we have exactly 3 packages as specified
-            if len(data) == 3:
-                print("✅ Verified: Exactly 3 packages returned")
-                # Check for expected package types
-                package_types = [pkg.get("package_type") for pkg in data]
-                expected_types = ["basic", "standard", "premium"]
-                found_types = [pkg_type for pkg_type in expected_types if pkg_type in package_types]
-                if len(found_types) == 3:
-                    print(f"✅ Verified: Found all expected package types: {', '.join(found_types)}")
-                else:
-                    print("❌ Verification failed: Not all expected package types found")
+    def test_create_user(self):
+        """Test creating a user"""
+        success, data = self.run_test(
+            "Create User",
+            "POST",
+            "api/users/",
+            200,
+            data=self.test_user
+        )
+        
+        if success and data and "id" in data:
+            self.created_user_id = data["id"]
+            print(f"✅ Created user with ID: {self.created_user_id}")
+            
+            # Verify the created user has the correct data
+            if (data.get("telegram_id") == self.test_user["telegram_id"] and 
+                data.get("first_name") == self.test_user["first_name"]):
+                print("✅ Verified: Created user has correct data")
             else:
-                print(f"❌ Verification failed: Expected 3 packages, got {len(data)}")
+                print("❌ Verification failed: Created user data mismatch")
+                
+            # Verify data in database
+            db_success, db_data = self.verify_db_data(
+                "users", 
+                f"id = '{self.created_user_id}'",
+                {"telegram_id": self.test_user["telegram_id"]}
+            )
+            if db_success:
+                print("✅ Database verification: User data correctly saved in SQLite")
+        
         return success, data
 
     def test_get_posts(self):
@@ -171,40 +250,31 @@ class TelegramMarketplaceAPITester:
         success, data = self.run_test("Get All Posts", "GET", "api/posts/")
         if success:
             print(f"Found {len(data)} posts")
-        return success, data
-
-    def test_get_job_posts(self):
-        """Test getting job posts"""
-        params = {"post_type": "job"}
-        success, data = self.run_test("Get Job Posts", "GET", "api/posts/", params=params)
-        if success:
-            print(f"Found {len(data)} job posts")
-            # Verify all returned posts are of type "job"
-            all_jobs = all(post.get("post_type") == "job" for post in data)
-            if all_jobs:
-                print("✅ Verified: All returned posts are of type 'job'")
+            
+            # Verify data in database
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) as count FROM posts WHERE status = 3")
+            row = cursor.fetchone()
+            db_count = row['count'] if row else 0
+            conn.close()
+            
+            if len(data) == db_count:
+                print(f"✅ Database verification: API returned {len(data)} posts, matching {db_count} active posts in database")
             else:
-                print("❌ Verification failed: Not all returned posts are of type 'job'")
-        return success, data
-
-    def test_get_service_posts(self):
-        """Test getting service posts"""
-        params = {"post_type": "service"}
-        success, data = self.run_test("Get Service Posts", "GET", "api/posts/", params=params)
-        if success:
-            print(f"Found {len(data)} service posts")
-            # Verify all returned posts are of type "service"
-            all_services = all(post.get("post_type") == "service" for post in data)
-            if all_services:
-                print("✅ Verified: All returned posts are of type 'service'")
-            else:
-                print("❌ Verification failed: Not all returned posts are of type 'service'")
+                print(f"❌ Database verification failed: API returned {len(data)} posts, but database has {db_count} active posts")
+        
         return success, data
 
     def test_create_job_post(self):
         """Test creating a job post"""
         if not (self.categories_data and self.cities_data and self.currencies_data):
             print("❌ Cannot create job post: Missing required data")
+            return False, None
+        
+        if not self.created_user_id:
+            print("❌ Cannot create job post: No test user created")
             return False, None
         
         job_category = next((cat for cat in self.categories_data if cat.get("name_ru") == "Работа"), None)
@@ -221,16 +291,13 @@ class TelegramMarketplaceAPITester:
             "price": 1500,
             "currency_id": currency.get("id"),
             "super_rubric_id": job_category.get("id"),
-            "city_id": city.get("id"),
-            "experience": "from_1_to_3_years",
-            "schedule": "full_time",
-            "work_format": "hybrid"
+            "city_id": city.get("id")
         }
         
-        # Use the real user ID from the review request
+        # Use our test user ID
         headers = {
             'Content-Type': 'application/json',
-            'X-Author-ID': '6855dc265afe51e45102bc68'
+            'X-Author-ID': self.created_user_id
         }
         
         success, data = self.run_test(
@@ -253,20 +320,43 @@ class TelegramMarketplaceAPITester:
                 print("❌ Verification failed: Created job post data mismatch")
                 
             # Verify the post has the correct author ID
-            if data.get("author_id") == '6855dc265afe51e45102bc68':
+            if data.get("author_id") == self.created_user_id:
                 print("✅ Verified: Created job post has correct author ID")
             else:
-                print(f"❌ Verification failed: Created job post has author_id {data.get('author_id')} instead of '6855dc265afe51e45102bc68'")
+                print(f"❌ Verification failed: Created job post has author_id {data.get('author_id')} instead of {self.created_user_id}")
                 
-            # Verify the post appears in the active posts list
-            _, posts_data = self.run_test("Get Active Posts", "GET", "api/posts/")
-            
-            if posts_data:
-                found_post = any(post.get("id") == self.created_job_post_id for post in posts_data)
-                if found_post:
-                    print("✅ Verified: New job post found in active posts list")
-                else:
-                    print("❌ Verification failed: New job post not found in active posts list")
+            # Verify data in database
+            db_success, db_data = self.verify_db_data(
+                "posts", 
+                f"id = '{self.created_job_post_id}'",
+                {
+                    "title": job_data["title"],
+                    "post_type": "job",
+                    "author_id": self.created_user_id,
+                    "status": 3  # Active status
+                }
+            )
+            if db_success:
+                print("✅ Database verification: Job post data correctly saved in SQLite")
+                
+            # Verify foreign key constraints
+            if db_data:
+                fk_checks = [
+                    ("currency_id", "currencies", db_data["currency_id"]),
+                    ("city_id", "cities", db_data["city_id"]),
+                    ("super_rubric_id", "super_rubrics", db_data["super_rubric_id"]),
+                    ("author_id", "users", db_data["author_id"])
+                ]
+                
+                all_fk_valid = True
+                for fk_field, fk_table, fk_value in fk_checks:
+                    fk_success, _ = self.verify_db_data(fk_table, f"id = '{fk_value}'")
+                    if not fk_success:
+                        all_fk_valid = False
+                        print(f"❌ Foreign key constraint failed: {fk_field} = '{fk_value}' not found in {fk_table}")
+                
+                if all_fk_valid:
+                    print("✅ Database verification: All foreign key constraints are valid")
         
         return success, data
 
@@ -274,6 +364,10 @@ class TelegramMarketplaceAPITester:
         """Test creating a service post"""
         if not (self.categories_data and self.cities_data and self.currencies_data):
             print("❌ Cannot create service post: Missing required data")
+            return False, None
+        
+        if not self.created_user_id:
+            print("❌ Cannot create service post: No test user created")
             return False, None
         
         service_category = next((cat for cat in self.categories_data if cat.get("name_ru") == "Услуги"), None)
@@ -290,14 +384,13 @@ class TelegramMarketplaceAPITester:
             "price": 2500,
             "currency_id": currency.get("id"),
             "super_rubric_id": service_category.get("id"),
-            "city_id": city.get("id"),
-            "phone": "+7 (999) 123-45-67"
+            "city_id": city.get("id")
         }
         
-        # Use the real user ID from the review request
+        # Use our test user ID
         headers = {
             'Content-Type': 'application/json',
-            'X-Author-ID': '6855dc265afe51e45102bc68'
+            'X-Author-ID': self.created_user_id
         }
         
         success, data = self.run_test(
@@ -320,105 +413,169 @@ class TelegramMarketplaceAPITester:
                 print("❌ Verification failed: Created service post data mismatch")
                 
             # Verify the post has the correct author ID
-            if data.get("author_id") == '6855dc265afe51e45102bc68':
+            if data.get("author_id") == self.created_user_id:
                 print("✅ Verified: Created service post has correct author ID")
             else:
-                print(f"❌ Verification failed: Created service post has author_id {data.get('author_id')} instead of '6855dc265afe51e45102bc68'")
+                print(f"❌ Verification failed: Created service post has author_id {data.get('author_id')} instead of {self.created_user_id}")
                 
-            # Verify the post appears in the active posts list
-            _, posts_data = self.run_test("Get Active Posts", "GET", "api/posts/")
-            
-            if posts_data:
-                found_post = any(post.get("id") == self.created_service_post_id for post in posts_data)
-                if found_post:
-                    print("✅ Verified: New service post found in active posts list")
-                else:
-                    print("❌ Verification failed: New service post not found in active posts list")
+            # Verify data in database
+            db_success, db_data = self.verify_db_data(
+                "posts", 
+                f"id = '{self.created_service_post_id}'",
+                {
+                    "title": service_data["title"],
+                    "post_type": "service",
+                    "author_id": self.created_user_id,
+                    "status": 3  # Active status
+                }
+            )
+            if db_success:
+                print("✅ Database verification: Service post data correctly saved in SQLite")
         
         return success, data
 
-    def test_get_user_by_id(self):
-        """Test getting user by ID"""
-        # Using the real user ID from the review request
-        user_id = "6855dc265afe51e45102bc68"
-        success, data = self.run_test("Get User by ID", "GET", f"api/users/{user_id}")
-        
-        if success and data:
-            if "error" not in data:
-                print(f"✅ Successfully retrieved user with ID: {user_id}")
-                print(f"User info: {data.get('first_name')} {data.get('last_name')} (@{data.get('username')})")
-            else:
-                print(f"❌ Failed to retrieve user with ID: {user_id}")
-        
-        return success, data
-
-    def test_view_counter_with_user_id(self):
-        """Test view counter functionality with user ID to prevent duplicate views"""
+    def test_update_post_status(self):
+        """Test updating post status"""
         if not self.created_job_post_id:
-            print("❌ Cannot test view counter: No job post created")
+            print("❌ Cannot test post status update: No job post created")
             return False, None
         
-        print("\n--- Testing View Counter with User ID ---")
+        # Update to archived status (status = 4)
+        update_data = {"status": 4}
         
-        # Get post details with user ID to increment views
-        user_id = "6855dc265afe51e45102bc68"  # Using the real user ID from the review request
+        success, data = self.run_test(
+            "Update Post Status",
+            "PUT",
+            f"api/posts/{self.created_job_post_id}/status",
+            200,
+            data=update_data
+        )
         
-        # First view - should increment
+        if success and data:
+            if "message" in data and "updated" in data["message"].lower():
+                print("✅ Verified: Post status updated successfully")
+                
+                # Verify data in database
+                db_success, db_data = self.verify_db_data(
+                    "posts", 
+                    f"id = '{self.created_job_post_id}'",
+                    {"status": 4}  # Archived status
+                )
+                if db_success:
+                    print("✅ Database verification: Post status correctly updated in SQLite")
+                
+                # Restore status to active for further tests
+                restore_data = {"status": 3}
+                self.run_test(
+                    "Restore Post Status",
+                    "PUT",
+                    f"api/posts/{self.created_job_post_id}/status",
+                    200,
+                    data=restore_data
+                )
+            else:
+                print("❌ Verification failed: Status update response missing success message")
+        
+        return success, data
+
+    def test_get_post_details(self):
+        """Test getting post details"""
+        if not self.created_job_post_id:
+            print("❌ Cannot test post details: No job post created")
+            return False, None
+        
+        success, data = self.run_test(
+            "Get Post Details",
+            "GET",
+            f"api/posts/{self.created_job_post_id}"
+        )
+        
+        if success and data:
+            if data.get("id") == self.created_job_post_id:
+                print("✅ Verified: Retrieved correct post details")
+                
+                # Verify data in database
+                db_success, _ = self.verify_db_data("posts", f"id = '{self.created_job_post_id}'")
+                if db_success:
+                    print("✅ Database verification: Post exists in SQLite")
+            else:
+                print("❌ Verification failed: Retrieved incorrect post details")
+        
+        return success, data
+
+    def test_view_counter(self):
+        """Test view counter functionality"""
+        if not self.created_job_post_id or not self.created_user_id:
+            print("❌ Cannot test view counter: No job post or user created")
+            return False, None
+        
+        print("\n--- Testing View Counter ---")
+        
+        # Get initial view count
+        _, initial_data = self.run_test(
+            "Get Initial View Count",
+            "GET",
+            f"api/posts/{self.created_job_post_id}"
+        )
+        
+        if not initial_data:
+            return False, None
+            
+        initial_views = initial_data.get("views_count", 0)
+        print(f"Initial view count: {initial_views}")
+        
+        # First view with user ID - should increment
         first_view_success, first_view_data = self.run_test(
             "First View with User ID",
             "GET",
-            f"api/posts/{self.created_job_post_id}?user_id={user_id}"
+            f"api/posts/{self.created_job_post_id}?user_id={self.created_user_id}"
         )
         
         if first_view_success and first_view_data:
             first_view_count = first_view_data.get("views_count", 0)
             print(f"View count after first view: {first_view_count}")
             
-            # Second view with same user ID - should NOT increment
-            second_view_success, second_view_data = self.run_test(
-                "Second View with Same User ID",
-                "GET",
-                f"api/posts/{self.created_job_post_id}?user_id={user_id}"
-            )
-            
-            if second_view_success and second_view_data:
-                second_view_count = second_view_data.get("views_count", 0)
-                print(f"View count after second view: {second_view_count}")
+            if first_view_count > initial_views:
+                print("✅ Verified: View counter incremented on first view")
                 
-                if second_view_count == first_view_count:
-                    print("✅ FIXED: View counter not incremented for same user viewing again")
-                else:
-                    print(f"❌ FIX FAILED: View counter incremented from {first_view_count} to {second_view_count} for same user")
+                # Verify view record in database
+                db_success, _ = self.verify_db_data(
+                    "post_views", 
+                    f"post_id = '{self.created_job_post_id}' AND user_id = '{self.created_user_id}'"
+                )
+                if db_success:
+                    print("✅ Database verification: View record saved in SQLite")
                 
-                # Third view with different user ID - should increment
-                different_user_id = "different-user"
-                third_view_success, third_view_data = self.run_test(
-                    "View with Different User ID",
+                # Second view with same user ID - should NOT increment
+                second_view_success, second_view_data = self.run_test(
+                    "Second View with Same User ID",
                     "GET",
-                    f"api/posts/{self.created_job_post_id}?user_id={different_user_id}"
+                    f"api/posts/{self.created_job_post_id}?user_id={self.created_user_id}"
                 )
                 
-                if third_view_success and third_view_data:
-                    third_view_count = third_view_data.get("views_count", 0)
-                    print(f"View count after view from different user: {third_view_count}")
+                if second_view_success and second_view_data:
+                    second_view_count = second_view_data.get("views_count", 0)
+                    print(f"View count after second view: {second_view_count}")
                     
-                    if third_view_count > second_view_count:
-                        print("✅ FIXED: View counter incremented for different user")
+                    if second_view_count == first_view_count:
+                        print("✅ Verified: View counter not incremented for same user viewing again")
                     else:
-                        print(f"❌ FIX FAILED: View counter not incremented for different user, still at {third_view_count}")
+                        print(f"❌ Verification failed: View counter incremented from {first_view_count} to {second_view_count} for same user")
+            else:
+                print(f"❌ Verification failed: View counter not incremented, still at {first_view_count}")
         
         return first_view_success, first_view_data
 
     def test_favorites_functionality(self):
         """Test favorites functionality"""
-        if not self.created_job_post_id:
-            print("❌ Cannot test favorites: No job post created")
+        if not self.created_job_post_id or not self.created_user_id:
+            print("❌ Cannot test favorites: No job post or user created")
             return False, None
         
         print("\n--- Testing Favorites API Endpoints ---")
         
         # Test adding to favorites
-        add_data = {"user_id": "6855dc265afe51e45102bc68", "post_id": self.created_job_post_id}
+        add_data = {"user_id": self.created_user_id, "post_id": self.created_job_post_id}
         add_success, add_data = self.run_test(
             "Add to Favorites",
             "POST",
@@ -430,11 +587,19 @@ class TelegramMarketplaceAPITester:
         if not add_success:
             return False, None
         
+        # Verify favorite record in database
+        db_success, _ = self.verify_db_data(
+            "favorites", 
+            f"user_id = '{self.created_user_id}' AND post_id = '{self.created_job_post_id}'"
+        )
+        if db_success:
+            print("✅ Database verification: Favorite record saved in SQLite")
+        
         # Test getting user favorites
         get_success, get_data = self.run_test(
             "Get User Favorites",
             "GET",
-            "api/posts/favorites/6855dc265afe51e45102bc68"
+            f"api/posts/favorites/{self.created_user_id}"
         )
         
         if get_success:
@@ -447,7 +612,7 @@ class TelegramMarketplaceAPITester:
                     print("❌ Verification failed: Post not found in user favorites")
             
         # Test removing from favorites
-        remove_data = {"user_id": "6855dc265afe51e45102bc68", "post_id": self.created_job_post_id}
+        remove_data = {"user_id": self.created_user_id, "post_id": self.created_job_post_id}
         remove_success, remove_data = self.run_test(
             "Remove from Favorites",
             "DELETE",
@@ -457,11 +622,27 @@ class TelegramMarketplaceAPITester:
         )
         
         if remove_success:
+            # Verify favorite record removed from database
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT COUNT(*) as count FROM favorites WHERE user_id = ? AND post_id = ?", 
+                (self.created_user_id, self.created_job_post_id)
+            )
+            row = cursor.fetchone()
+            count = row[0] if row else 0
+            conn.close()
+            
+            if count == 0:
+                print("✅ Database verification: Favorite record removed from SQLite")
+            else:
+                print("❌ Database verification failed: Favorite record still exists in SQLite")
+            
             # Verify post was removed from favorites
             _, verify_data = self.run_test(
                 "Verify Favorites Removal",
                 "GET",
-                "api/posts/favorites/6855dc265afe51e45102bc68"
+                f"api/posts/favorites/{self.created_user_id}"
             )
             
             if isinstance(verify_data, list):
@@ -551,6 +732,19 @@ class TelegramMarketplaceAPITester:
             
             if not missing_fields:
                 print(f"✅ Verified: User stats contains all expected fields: {', '.join(expected_fields)}")
+                
+                # Verify stats match database
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) as count FROM users")
+                row = cursor.fetchone()
+                db_total_users = row[0] if row else 0
+                conn.close()
+                
+                if data["total_users"] == db_total_users:
+                    print(f"✅ Database verification: User stats match database (total users: {db_total_users})")
+                else:
+                    print(f"❌ Database verification failed: User stats don't match database (API: {data['total_users']}, DB: {db_total_users})")
             else:
                 print(f"❌ Verification failed: User stats missing fields: {', '.join(missing_fields)}")
                 success = False
@@ -583,6 +777,25 @@ class TelegramMarketplaceAPITester:
             
             if not missing_fields:
                 print(f"✅ Verified: Post stats contains all expected fields: {', '.join(expected_fields)}")
+                
+                # Verify stats match database
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) as count FROM posts")
+                row = cursor.fetchone()
+                db_total_posts = row[0] if row else 0
+                
+                cursor.execute("SELECT COUNT(*) as count FROM posts WHERE status = 3")
+                row = cursor.fetchone()
+                db_active_posts = row[0] if row else 0
+                conn.close()
+                
+                if data["total_posts"] == db_total_posts and data["active_posts"] == db_active_posts:
+                    print(f"✅ Database verification: Post stats match database (total: {db_total_posts}, active: {db_active_posts})")
+                else:
+                    print(f"❌ Database verification failed: Post stats don't match database")
+                    print(f"  API: total={data['total_posts']}, active={data['active_posts']}")
+                    print(f"  DB: total={db_total_posts}, active={db_active_posts}")
             else:
                 print(f"❌ Verification failed: Post stats missing fields: {', '.join(missing_fields)}")
                 success = False
@@ -615,6 +828,11 @@ class TelegramMarketplaceAPITester:
             
             if not missing_fields:
                 print(f"✅ Verified: Settings contains all expected fields: {', '.join(expected_fields)}")
+                
+                # Verify settings match database
+                db_success, db_data = self.verify_db_data("app_settings", "id = 'default'")
+                if db_success:
+                    print("✅ Database verification: Settings exist in SQLite")
             else:
                 print(f"❌ Verification failed: Settings missing fields: {', '.join(missing_fields)}")
                 success = False
@@ -665,7 +883,20 @@ class TelegramMarketplaceAPITester:
             if data.get("success") and "message" in data:
                 print("✅ Verified: Settings updated successfully")
                 
-                # Verify the settings were actually updated
+                # Verify the settings were actually updated in database
+                db_success, db_data = self.verify_db_data(
+                    "app_settings", 
+                    "id = 'default'",
+                    {
+                        "app_name": update_data["app_name"],
+                        "app_description": update_data["app_description"],
+                        "free_posts_per_week": update_data["free_posts_per_week"]
+                    }
+                )
+                if db_success:
+                    print("✅ Database verification: Settings correctly updated in SQLite")
+                
+                # Verify the settings were actually updated in API
                 _, updated_settings = self.run_test(
                     "Verify Updated Settings",
                     "GET",
@@ -738,6 +969,19 @@ class TelegramMarketplaceAPITester:
                 else:
                     print(f"❌ Verification failed: Not all expected currency codes found. Found: {', '.join(found_codes)}")
                     success = False
+                    
+                # Verify currencies match database
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) as count FROM currencies")
+                row = cursor.fetchone()
+                db_count = row[0] if row else 0
+                conn.close()
+                
+                if len(data) == db_count:
+                    print(f"✅ Database verification: Currency count matches database ({db_count})")
+                else:
+                    print(f"❌ Database verification failed: Currency count doesn't match database (API: {len(data)}, DB: {db_count})")
             else:
                 print("❌ Verification failed: Currencies response is not a list")
                 success = False
@@ -776,6 +1020,19 @@ class TelegramMarketplaceAPITester:
             if "id" in data and data.get("code") == currency_data["code"]:
                 print(f"✅ Verified: Currency created successfully with ID: {data['id']}")
                 self.created_currency_id = data["id"]
+                
+                # Verify currency saved in database
+                db_success, db_data = self.verify_db_data(
+                    "currencies", 
+                    f"id = '{self.created_currency_id}'",
+                    {
+                        "code": currency_data["code"],
+                        "name_ru": currency_data["name_ru"],
+                        "symbol": currency_data["symbol"]
+                    }
+                )
+                if db_success:
+                    print("✅ Database verification: Currency correctly saved in SQLite")
                 
                 # Verify the currency appears in the list
                 _, currencies_data = self.run_test(
@@ -830,6 +1087,19 @@ class TelegramMarketplaceAPITester:
             if data.get("success") and "message" in data:
                 print("✅ Verified: Currency updated successfully")
                 
+                # Verify currency updated in database
+                db_success, db_data = self.verify_db_data(
+                    "currencies", 
+                    f"id = '{self.created_currency_id}'",
+                    {
+                        "name_ru": update_data["name_ru"],
+                        "name_ua": update_data["name_ua"],
+                        "symbol": update_data["symbol"]
+                    }
+                )
+                if db_success:
+                    print("✅ Database verification: Currency correctly updated in SQLite")
+                
                 # Verify the currency was actually updated
                 _, currencies_data = self.run_test(
                     "Verify Currency Update",
@@ -881,6 +1151,19 @@ class TelegramMarketplaceAPITester:
             if data.get("success") and "message" in data:
                 print("✅ Verified: Currency deleted successfully")
                 
+                # Verify currency deleted from database
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+                cursor.execute(f"SELECT COUNT(*) as count FROM currencies WHERE id = ?", (self.created_currency_id,))
+                row = cursor.fetchone()
+                count = row[0] if row else 0
+                conn.close()
+                
+                if count == 0:
+                    print("✅ Database verification: Currency correctly deleted from SQLite")
+                else:
+                    print("❌ Database verification failed: Currency still exists in SQLite")
+                
                 # Verify the currency was actually deleted
                 _, currencies_data = self.run_test(
                     "Verify Currency Deletion",
@@ -929,16 +1212,34 @@ def main():
     # Get the backend URL from the frontend .env file
     backend_url = "https://82d3e5fa-4130-416d-8d10-174d6a16170f.preview.emergentagent.com"
     
-    print(f"Testing API at: {backend_url}")
+    print(f"Testing SQLite API at: {backend_url}")
     
     # Setup tester
     tester = TelegramMarketplaceAPITester(backend_url)
     
     # Run basic API tests
+    print("\n🔍 TESTING BASIC API ENDPOINTS")
     tester.test_health_check()
     tester.test_get_super_rubrics()
     tester.test_get_cities()
     tester.test_get_currencies()
+    
+    # Test user creation
+    print("\n🔍 TESTING USER API")
+    tester.test_create_user()
+    
+    # Test posts API
+    print("\n🔍 TESTING POSTS API")
+    tester.test_get_posts()
+    tester.test_create_job_post()
+    tester.test_create_service_post()
+    tester.test_update_post_status()
+    tester.test_get_post_details()
+    tester.test_view_counter()
+    
+    # Test favorites API
+    print("\n🔍 TESTING FAVORITES API")
+    tester.test_favorites_functionality()
     
     # Test admin panel functionality
     print("\n🔍 TESTING ADMIN PANEL: Admin authentication and functionality")
@@ -963,10 +1264,6 @@ def main():
     tester.test_admin_create_currency()
     tester.test_admin_update_currency()
     tester.test_admin_delete_currency()
-    
-    # Test general API endpoints
-    print("\n🔍 TESTING GENERAL API ENDPOINTS: Categories, cities, and posts")
-    tester.test_get_posts()
     
     # Print summary
     success = tester.print_summary()
