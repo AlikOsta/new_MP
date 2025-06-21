@@ -221,6 +221,8 @@ export const getUser = (userId) => apiService.getUser(userId);
 export const getUserByTelegramId = (telegramId) => apiService.getUserByTelegramId(telegramId);
 export const updateUser = (userId, userData) => apiService.updateUser(userId, userData);
 export const getPackages = () => apiService.getPackages();
+export const checkFreePostAvailability = (userId) => apiService.checkFreePostAvailability(userId);
+export const purchasePackage = (userId, packageId) => apiService.purchasePackage(userId, packageId);
 export const createPayment = (paymentData, userId) => apiService.createPayment(paymentData, userId);
 export const getPayment = (paymentId) => apiService.getPayment(paymentId);
 export const completePayment = (paymentId, telegramChargeId, providerChargeId) => apiService.completePayment(paymentId, telegramChargeId, providerChargeId);
