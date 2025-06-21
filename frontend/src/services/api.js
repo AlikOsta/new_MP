@@ -58,6 +58,11 @@ class ApiService {
     return this.request('/api/categories/currencies');
   }
 
+  // Get all reference data in one request for optimization
+  async getAllReferenceData() {
+    return this.request('/api/categories/all');
+  }
+
   // Posts
   async getPosts(filters = {}) {
     const params = new URLSearchParams();
