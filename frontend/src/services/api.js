@@ -33,6 +33,11 @@ class ApiService {
       ...options,
     };
 
+    // Add authorization header if token exists
+    if (this.authToken) {
+      config.headers['Authorization'] = `Bearer ${this.authToken}`;
+    }
+
     if (config.body && typeof config.body === 'object') {
       config.body = JSON.stringify(config.body);
     }
