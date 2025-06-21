@@ -495,7 +495,7 @@ class TelegramMarketplaceAPITester:
 
 def main():
     # Get the backend URL from the frontend .env file
-    backend_url = "https://dd2133eb-15ad-4681-b6b7-b2b6cd0e455f.preview.emergentagent.com"
+    backend_url = "https://82d3e5fa-4130-416d-8d10-174d6a16170f.preview.emergentagent.com"
     
     print(f"Testing API at: {backend_url}")
     
