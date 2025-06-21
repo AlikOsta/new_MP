@@ -168,6 +168,8 @@ function App() {
   };
 
   const handleCreatePost = async (postData) => {
+    if (!requireAuth('create post')) return;
+    
     try {
       if (activeTab === 'job') {
         await apiService.createJobPost(postData, currentUser.id);
