@@ -80,6 +80,8 @@ const PostsPage = () => {
         return <span className="admin-badge admin-badge-success">Активно</span>;
       case 4:
         return <span className="admin-badge admin-badge-danger">Отклонено</span>;
+      case 5:
+        return <span className="admin-badge admin-badge-secondary">Архив</span>;
       default:
         return <span className="admin-badge admin-badge-info">Неизвестно</span>;
     }
