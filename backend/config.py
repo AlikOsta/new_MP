@@ -26,7 +26,8 @@ CORS_ORIGINS = [
     "http://localhost:3000",
     "https://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://127.0.0.1:3000"
+    "https://127.0.0.1:3000",
+    "https://51d971f9-1e69-4e09-9727-e45dadcdbabe.preview.emergentagent.com"
 ]
 
 # API settings
