@@ -385,6 +385,7 @@ function App() {
                     currencies={currencies}
                     cities={cities}
                     isFavorite={favorites.includes(post.id)}
+                    isUserAuthenticated={!!currentUser}
                   />
                 ))
               )}
