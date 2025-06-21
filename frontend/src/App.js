@@ -406,17 +406,19 @@ function App() {
             </button>
             <button 
               className={`flex flex-col items-center text-xs ${currentPage === 'favorites' ? 'text-blue-600' : 'text-gray-500'}`}
-              onClick={() => setCurrentPage('favorites')}
+              onClick={handleShowFavorites}
             >
               <span className="text-xl mb-1">❤️</span>
               Избранное
+              {!currentUser && <span className="text-xs text-red-500">*</span>}
             </button>
             <button 
               className="flex flex-col items-center text-xs text-gray-500"
-              onClick={() => setShowCreateModal(true)}
+              onClick={handleShowCreateModal}
             >
               <span className="text-xl mb-1">➕</span>
               Создать
+              {!currentUser && <span className="text-xs text-red-500">*</span>}
             </button>
             <button 
               className={`flex flex-col items-center text-xs ${currentPage === 'tariffs' ? 'text-blue-600' : 'text-gray-500'}`}
@@ -427,10 +429,11 @@ function App() {
             </button>
             <button 
               className={`flex flex-col items-center text-xs ${currentPage === 'profile' ? 'text-blue-600' : 'text-gray-500'}`}
-              onClick={() => setCurrentPage('profile')}
+              onClick={handleShowProfile}
             >
               <span className="text-xl mb-1">👤</span>
-              Профиль
+              {currentUser ? 'Профиль' : 'Войти'}
+              {!currentUser && <span className="text-xs text-red-500">*</span>}
             </button>
           </div>
         </div>
