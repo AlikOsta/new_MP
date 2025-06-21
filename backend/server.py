@@ -28,13 +28,8 @@ categories_router = APIRouter(prefix="/api/categories", tags=["categories"])
 
 @categories_router.get("/super-rubrics")
 async def get_super_rubrics():
-    cursor = db.super_rubrics.find({"is_active": True})
-    result = []
-    async for doc in cursor:
-        doc["_id"] = str(doc["_id"])
-        doc["id"] = doc["_id"]
-        result.append(doc)
-    return result
+    results = await db.fetchall("SELECT * FROM super_rubrics WHERE is_active = 1")
+    return results
 
 @categories_router.get("/cities")
 async def get_cities():
