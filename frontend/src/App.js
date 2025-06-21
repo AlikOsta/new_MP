@@ -114,17 +114,14 @@ function App() {
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const [categoriesData, citiesData, currenciesData, packagesData] = await Promise.all([
-        apiService.getCategories(),
-        apiService.getCities(),
-        apiService.getCurrencies(),
-        apiService.getPackages()
-      ]);
       
-      setCategories(categoriesData);
-      setCities(citiesData);
-      setCurrencies(currenciesData);
-      setPackages(packagesData);
+      // Single optimized request for all reference data
+      const allData = await apiService.getAllReferenceData();
+      
+      setCategories(allData.categories);
+      setCities(allData.cities);
+      setCurrencies(allData.currencies);
+      setPackages(allData.packages);
     } catch (err) {
       setError('Ошибка загрузки данных');
       console.error('Error loading initial data:', err);
