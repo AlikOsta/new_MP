@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 
 # Загружаем переменные
 load_dotenv('backend/.env')
+load_dotenv('frontend/.env')
+load_dotenv('.env')
 
 async def test_bot_components():
     """Тестируем компоненты бота"""
