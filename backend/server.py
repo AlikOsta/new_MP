@@ -52,33 +52,37 @@ async def get_posts(
     super_rubric_id: str = None,
     city_id: str = None
 ):
-    query = {"status": 3}  # Active status по умолчанию
+    query = "SELECT * FROM posts WHERE 1=1"
+    params = []
     
     # Если запрашиваются посты конкретного автора, показываем все статусы
     if author_id:
-        query = {"author_id": author_id}
+        query += " AND author_id = ?"
+        params.append(author_id)
     else:
-        query = {"status": 3}  # Для общего списка только активные
+        query += " AND status = ?"
+        params.append(3)  # Для общего списка только активные
     
     if post_type:
-        query["post_type"] = post_type
-    if super_rubric_id:
-        query["super_rubric_id"] = super_rubric_id
-    if city_id:
-        query["city_id"] = city_id
-    if search:
-        query["$or"] = [
-            {"title": {"$regex": search, "$options": "i"}},
-            {"description": {"$regex": search, "$options": "i"}}
-        ]
+        query += " AND post_type = ?"
+        params.append(post_type)
     
-    cursor = db.posts.find(query).sort("created_at", -1).limit(50)
-    result = []
-    async for doc in cursor:
-        doc["_id"] = str(doc["_id"])
-        doc["id"] = doc["_id"]
-        result.append(doc)
-    return result
+    if super_rubric_id:
+        query += " AND super_rubric_id = ?"
+        params.append(super_rubric_id)
+    
+    if city_id:
+        query += " AND city_id = ?"
+        params.append(city_id)
+    
+    if search:
+        query += " AND (title LIKE ? OR description LIKE ?)"
+        params.extend([f"%{search}%", f"%{search}%"])
+    
+    query += " ORDER BY created_at DESC LIMIT 50"
+    
+    results = await db.fetchall(query, params)
+    return results
 
 @posts_router.post("/jobs")
 async def create_job_post(request: Request):
