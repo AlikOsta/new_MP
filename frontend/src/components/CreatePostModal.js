@@ -455,12 +455,26 @@ const CreatePostModal = ({
             >
               Отмена
             </button>
-            <button
-              type="submit"
-              className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Опубликовать
-            </button>
+            {(() => {
+              const selectedPkg = packages.find(pkg => pkg.id === selectedPackage);
+              const isPaid = selectedPkg && selectedPkg.price > 0;
+              
+              return (
+                <button
+                  type="submit"
+                  className={`flex-1 py-3 px-4 rounded-lg text-white ${
+                    isPaid 
+                      ? 'bg-green-600 hover:bg-green-700' 
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
+                >
+                  {isPaid 
+                    ? `💳 Оплата ${selectedPkg.price} ₽` 
+                    : 'Опубликовать'
+                  }
+                </button>
+              );
+            })()}
           </div>
 
           {/* Tariffs link */}
