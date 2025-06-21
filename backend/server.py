@@ -12,6 +12,9 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Add current directory to Python path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 # Database import
 from database import db
 
