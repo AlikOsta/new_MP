@@ -12,45 +12,9 @@ const PackagesPage = () => {
   const loadPackages = async () => {
     try {
       setLoading(true);
-      // Mock data since we don't have packages endpoint in API
-      const mockPackages = [
-        {
-          id: 'basic-package',
-          name_ru: 'Базовый',
-          name_ua: 'Базовий',
-          package_type: 'basic',
-          price: 0,
-          currency_code: 'RUB',
-          duration_days: 7,
-          features_ru: ['1 бесплатное объявление в неделю', 'Стандартное размещение'],
-          features_ua: ['1 безкоштовне оголошення на тиждень', 'Стандартне розміщення'],
-          is_active: true
-        },
-        {
-          id: 'standard-package',
-          name_ru: 'Стандарт',
-          name_ua: 'Стандарт',
-          package_type: 'standard',
-          price: 100,
-          currency_code: 'RUB',
-          duration_days: 14,
-          features_ru: ['Приоритетное размещение', 'Выделение цветом', 'Больше просмотров'],
-          features_ua: ['Пріоритетне розміщення', 'Виділення кольором', 'Більше переглядів'],
-          is_active: true
-        },
-        {
-          id: 'premium-package',
-          name_ru: 'Премиум',
-          name_ua: 'Преміум',
-          package_type: 'premium',
-          price: 250,
-          currency_code: 'RUB',
-          duration_days: 30,
-          features_ru: ['Топ размещение', 'Особое выделение', 'Максимум просмотров', 'Поддержка'],
-          features_ua: ['Топ розміщення', 'Особливе виділення', 'Максимум переглядів', 'Підтримка'],
-          is_active: true
-        }
-      ];
+      // Using mock data since we don't have packages endpoint
+      // In production, this would be an API call
+      const mockPackages = [];
       setPackages(mockPackages);
     } catch (err) {
       setError('Ошибка загрузки тарифов');
