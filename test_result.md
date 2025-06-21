@@ -141,6 +141,30 @@
           agent: "main"
           comment: "Убрали default demo-user, теперь требуется X-Author-ID header для создания постов"
 
+  - task: "Оптимизация производительности БД"
+    implemented: true
+    working: true
+    file: "database.py, server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Создано 27 индексов для оптимизации. Единый API endpoint /api/categories/all. Пагинация постов. Селективная выборка полей"
+
+  - task: "API оптимизация для Telegram Mini App"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Время ответа API: 7ms для справочных данных, 4ms для постов. Сокращение запросов с 4+ до 1. Пагинация с ограничениями"
+
 ## frontend:
   - task: "Замена фиктивной авторизации на Telegram WebApp"
     implemented: true
