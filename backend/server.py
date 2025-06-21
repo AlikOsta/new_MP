@@ -552,6 +552,79 @@ async def admin_delete_currency(currency_id: str):
     
     return {"success": True, "message": "Currency deleted"}
 
+# CRUD endpoints for packages (тарифы)
+@admin_router.get("/packages")
+async def admin_get_packages():
+    """Get all packages for admin"""
+    results = await db.fetchall("SELECT * FROM packages ORDER BY sort_order ASC")
+    
+    # Parse features from JSON strings
+    for package in results:
+        if package.get("features_ru"):
+            package["features_ru"] = package["features_ru"].split("|")
+        if package.get("features_ua"):
+            package["features_ua"] = package["features_ua"].split("|")
+    
+    return results
+
+@admin_router.post("/packages")
+async def admin_create_package(request: Request):
+    """Create package"""
+    data = await request.json()
+    
+    package_data = {
+        "name_ru": data.get("name_ru"),
+        "name_ua": data.get("name_ua"),
+        "package_type": data.get("package_type"),
+        "price": data.get("price", 0),
+        "currency_id": data.get("currency_id"),
+        "duration_days": data.get("duration_days", 30),
+        "post_lifetime_days": data.get("post_lifetime_days", 30),
+        "features_ru": "|".join(data.get("features_ru", [])),
+        "features_ua": "|".join(data.get("features_ua", [])),
+        "has_photo": data.get("has_photo", False),
+        "has_highlight": data.get("has_highlight", False),
+        "has_boost": data.get("has_boost", False),
+        "boost_interval_days": data.get("boost_interval_days"),
+        "is_active": data.get("is_active", True),
+        "sort_order": data.get("sort_order", 0),
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat()
+    }
+    
+    package_id = await db.insert("packages", package_data)
+    package_data["id"] = package_id
+    
+    return package_data
+
+@admin_router.put("/packages/{package_id}")
+async def admin_update_package(package_id: str, request: Request):
+    """Update package"""
+    data = await request.json()
+    
+    # Convert features arrays to strings
+    if "features_ru" in data and isinstance(data["features_ru"], list):
+        data["features_ru"] = "|".join(data["features_ru"])
+    if "features_ua" in data and isinstance(data["features_ua"], list):
+        data["features_ua"] = "|".join(data["features_ua"])
+    
+    rows_affected = await db.update("packages", data, "id = ?", [package_id])
+    
+    if rows_affected == 0:
+        return {"error": "Package not found"}
+    
+    return {"success": True, "message": "Package updated"}
+
+@admin_router.delete("/packages/{package_id}")
+async def admin_delete_package(package_id: str):
+    """Delete package"""
+    rows_affected = await db.delete("packages", "id = ?", [package_id])
+    
+    if rows_affected == 0:
+        return {"error": "Package not found"}
+    
+    return {"success": True, "message": "Package deleted"}
+
 # Packages router
 packages_router = APIRouter(prefix="/api/packages", tags=["packages"])
 
