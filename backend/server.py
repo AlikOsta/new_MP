@@ -362,16 +362,22 @@ async def get_app_settings():
         settings = {
             "show_view_counts": True,
             "telegram_bot_token": "***hidden***",
+            "telegram_payment_token": "***hidden***",
+            "telegram_moderator_chat_id": "",
+            "telegram_moderator_username": "",
             "mistral_api_key": "***hidden***",
             "app_name": "Telegram Marketplace",
             "app_description": "Платформа частных объявлений",
             "free_posts_per_week": 1,
             "moderation_enabled": True,
+            "ai_moderation_enabled": True,
+            "post_lifetime_days": 30,
             "id": "default"
         }
     else:
         # Hide sensitive fields
         settings["telegram_bot_token"] = "***hidden***"
+        settings["telegram_payment_token"] = "***hidden***"
         settings["mistral_api_key"] = "***hidden***"
     
     return settings
