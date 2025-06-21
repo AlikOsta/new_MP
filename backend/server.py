@@ -710,6 +710,109 @@ async def admin_delete_package(package_id: str):
     
     return {"success": True, "message": "Package deleted"}
 
+# CRUD endpoints for categories (super rubrics)
+@admin_router.get("/categories")
+async def admin_get_categories():
+    """Get all categories for admin"""
+    results = await db.fetchall("SELECT * FROM super_rubrics ORDER BY name_ru ASC")
+    return results
+
+@admin_router.post("/categories")
+async def admin_create_category(request: Request):
+    """Create category"""
+    data = await request.json()
+    
+    category_data = {
+        "name_ru": data.get("name_ru"),
+        "name_ua": data.get("name_ua"),
+        "icon": data.get("icon"),
+        "is_active": data.get("is_active", True)
+    }
+    
+    category_id = await db.insert("super_rubrics", category_data)
+    category_data["id"] = category_id
+    
+    return category_data
+
+@admin_router.put("/categories/{category_id}")
+async def admin_update_category(category_id: str, request: Request):
+    """Update category"""
+    data = await request.json()
+    
+    rows_affected = await db.update("super_rubrics", data, "id = ?", [category_id])
+    
+    if rows_affected == 0:
+        return {"error": "Category not found"}
+    
+    return {"success": True, "message": "Category updated"}
+
+@admin_router.delete("/categories/{category_id}")
+async def admin_delete_category(category_id: str):
+    """Delete category"""
+    # Check if category is used in posts
+    posts_count = await db.fetchone("SELECT COUNT(*) as count FROM posts WHERE super_rubric_id = ?", [category_id])
+    
+    if posts_count and posts_count["count"] > 0:
+        return {"error": f"Cannot delete category. It's used in {posts_count['count']} posts"}
+    
+    rows_affected = await db.delete("super_rubrics", "id = ?", [category_id])
+    
+    if rows_affected == 0:
+        return {"error": "Category not found"}
+    
+    return {"success": True, "message": "Category deleted"}
+
+# CRUD endpoints for cities
+@admin_router.get("/cities")
+async def admin_get_cities():
+    """Get all cities for admin"""
+    results = await db.fetchall("SELECT * FROM cities ORDER BY name_ru ASC")
+    return results
+
+@admin_router.post("/cities")
+async def admin_create_city(request: Request):
+    """Create city"""
+    data = await request.json()
+    
+    city_data = {
+        "name_ru": data.get("name_ru"),
+        "name_ua": data.get("name_ua"),
+        "is_active": data.get("is_active", True)
+    }
+    
+    city_id = await db.insert("cities", city_data)
+    city_data["id"] = city_id
+    
+    return city_data
+
+@admin_router.put("/cities/{city_id}")
+async def admin_update_city(city_id: str, request: Request):
+    """Update city"""
+    data = await request.json()
+    
+    rows_affected = await db.update("cities", data, "id = ?", [city_id])
+    
+    if rows_affected == 0:
+        return {"error": "City not found"}
+    
+    return {"success": True, "message": "City updated"}
+
+@admin_router.delete("/cities/{city_id}")
+async def admin_delete_city(city_id: str):
+    """Delete city"""
+    # Check if city is used in posts
+    posts_count = await db.fetchone("SELECT COUNT(*) as count FROM posts WHERE city_id = ?", [city_id])
+    
+    if posts_count and posts_count["count"] > 0:
+        return {"error": f"Cannot delete city. It's used in {posts_count['count']} posts"}
+    
+    rows_affected = await db.delete("cities", "id = ?", [city_id])
+    
+    if rows_affected == 0:
+        return {"error": "City not found"}
+    
+    return {"success": True, "message": "City deleted"}
+
 # Background tasks management endpoints
 @admin_router.post("/tasks/expire-posts")
 async def admin_expire_posts():
