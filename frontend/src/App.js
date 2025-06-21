@@ -136,11 +136,19 @@ function App() {
         post_type: activeTab,
         search: searchQuery || undefined,
         super_rubric_id: selectedCategory || undefined,
-        city_id: selectedCity || undefined
+        city_id: selectedCity || undefined,
+        page: 1,
+        limit: 20
       };
       
-      const postsData = await apiService.getPosts(filters);
-      setPosts(postsData);
+      const postsResponse = await apiService.getPosts(filters);
+      
+      // Handle both old format (array) and new format (object with posts)
+      if (Array.isArray(postsResponse)) {
+        setPosts(postsResponse);
+      } else {
+        setPosts(postsResponse.posts || []);
+      }
     } catch (err) {
       console.error('Error loading posts:', err);
     }
