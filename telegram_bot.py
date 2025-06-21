@@ -1,18 +1,15 @@
 """
 Telegram Bot для Telegram Marketplace Mini App
-Функции:
-- /start - отображает кнопку для открытия Mini App
-- Обработка платежей для платных тарифов
-- Интеграция с FastAPI backend
+Упрощенная версия с совместимыми зависимостями
 """
 
 import asyncio
 import os
 import logging
 from typing import Dict, Any
+import json
 
 from aiogram import Bot, Dispatcher, types
-from aiogram.client.default import DefaultBotProperties
 from aiogram.filters import Command
 from aiogram.types import (
     WebAppInfo, 
@@ -22,7 +19,6 @@ from aiogram.types import (
     PreCheckoutQuery,
     SuccessfulPayment
 )
-from aiogram.client.session.aiohttp import AiohttpSession
 import httpx
 from dotenv import load_dotenv
 
@@ -40,9 +36,8 @@ MINIAPP_URL = BACKEND_URL  # Mini App URL - тот же домен, что и ba
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Создаем бота с HTML парсингом
-default_props = DefaultBotProperties(parse_mode="HTML")
-bot = Bot(token=BOT_TOKEN, default=default_props)
+# Создаем бота
+bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
 class TelegramMarketplaceBot:
@@ -165,7 +160,8 @@ async def cmd_start(message: types.Message):
         
         await message.answer(
             text=welcome_text,
-            reply_markup=keyboard
+            reply_markup=keyboard,
+            parse_mode="HTML"
         )
         
         logger.info(f"Start command processed for user {message.from_user.id}")
@@ -197,7 +193,8 @@ async def process_help_callback(callback_query: types.CallbackQuery):
         text=help_text,
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_start")]
-        ])
+        ]),
+        parse_mode="HTML"
     )
 
 @dp.callback_query(lambda c: c.data == "back_to_start")
@@ -229,7 +226,8 @@ async def process_back_to_start(callback_query: types.CallbackQuery):
     
     await callback_query.message.edit_text(
         text=welcome_text,
-        reply_markup=keyboard
+        reply_markup=keyboard,
+        parse_mode="HTML"
     )
 
 @dp.message(Command(commands=["pay"]))
@@ -322,7 +320,8 @@ async def successful_payment(message: types.Message):
                                 text="📱 Открыть приложение",
                                 web_app=WebAppInfo(url=MINIAPP_URL)
                             )]
-                        ])
+                        ]),
+                        parse_mode="HTML"
                     )
                 else:
                     # Ошибка на backend
