@@ -38,7 +38,9 @@ const PostsPage = () => {
     const matchesStatus = filterStatus === 'all' || 
       (filterStatus === 'active' && post.status === 3) ||  // Active
       (filterStatus === 'draft' && post.status === 1) ||   // Draft
-      (filterStatus === 'moderation' && post.status === 2); // Moderation
+      (filterStatus === 'moderation' && post.status === 2) || // Moderation
+      (filterStatus === 'rejected' && post.status === 4) || // Rejected
+      (filterStatus === 'archived' && post.status === 5);   // Archived
     
     return matchesSearch && matchesType && matchesStatus;
   });
