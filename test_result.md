@@ -235,8 +235,8 @@
 ## test_plan:
   current_focus:
     - "Подготовка к продакшену завершена"
-    - "Удаление демо контента"
-    - "Интеграция с Telegram WebApp"
+    - "Оптимизация производительности для Telegram Mini App"
+    - "Создание документации по настройке"
   stuck_tasks: []
   test_all: false
   test_priority: "sequential"
