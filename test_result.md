@@ -118,6 +118,24 @@
           comment: "Полный API с endpoints для категорий, постов, пользователей, избранного, админки. MongoDB интеграция работает."
         - working: true
           agent: "testing"
+          comment: "Админ-панель API протестирована. Все endpoints работают корректно после исправления ObjectId сериализации."
+
+  - task: "Админ панель API"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Админ API создан: авторизация, статистика, настройки, CRUD валют."
+        - working: true
+          agent: "testing"
+          comment: "Все админ endpoints протестированы: авторизация ✅, статистика ✅, настройки ✅, CRUD валют ✅"
+        - working: true
+          agent: "testing"
           comment: "Протестирована админ-панель Telegram Marketplace. Большинство API работают корректно, но есть проблема с получением обновленных настроек (500 Internal Server Error). Ошибка связана с ObjectId в MongoDB, который не может быть сериализован в JSON. Остальные функции админки (авторизация, статистика, CRUD валют) работают правильно."
 
 ## frontend:
