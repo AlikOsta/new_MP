@@ -75,15 +75,107 @@ class Database:
                     city_id TEXT,
                     super_rubric_id TEXT,
                     author_id TEXT,
-                    status INTEGER DEFAULT 3,
+                    status INTEGER DEFAULT 1,
                     views_count INTEGER DEFAULT 0,
                     is_premium BOOLEAN DEFAULT 0,
+                    package_id TEXT,
+                    has_photo BOOLEAN DEFAULT 0,
+                    has_highlight BOOLEAN DEFAULT 0,
+                    has_boost BOOLEAN DEFAULT 0,
+                    post_lifetime_days INTEGER DEFAULT 30,
+                    expires_at TEXT,
+                    ai_moderation_passed BOOLEAN DEFAULT 0,
                     created_at TEXT,
                     updated_at TEXT,
                     FOREIGN KEY (currency_id) REFERENCES currencies (id),
                     FOREIGN KEY (city_id) REFERENCES cities (id),
                     FOREIGN KEY (super_rubric_id) REFERENCES super_rubrics (id),
-                    FOREIGN KEY (author_id) REFERENCES users (id)
+                    FOREIGN KEY (author_id) REFERENCES users (id),
+                    FOREIGN KEY (package_id) REFERENCES packages (id)
+                )
+            """)
+            
+            # Packages table (тарифы)
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS packages (
+                    id TEXT PRIMARY KEY,
+                    name_ru TEXT,
+                    name_ua TEXT,
+                    package_type TEXT,
+                    price REAL,
+                    currency_id TEXT,
+                    duration_days INTEGER,
+                    post_lifetime_days INTEGER DEFAULT 30,
+                    features_ru TEXT,
+                    features_ua TEXT,
+                    has_photo BOOLEAN DEFAULT 0,
+                    has_highlight BOOLEAN DEFAULT 0,
+                    has_boost BOOLEAN DEFAULT 0,
+                    boost_interval_days INTEGER,
+                    is_active BOOLEAN DEFAULT 1,
+                    sort_order INTEGER DEFAULT 0,
+                    created_at TEXT,
+                    updated_at TEXT,
+                    FOREIGN KEY (currency_id) REFERENCES currencies (id)
+                )
+            """)
+            
+            # User packages (покупки тарифов)
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS user_packages (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT,
+                    package_id TEXT,
+                    post_id TEXT,
+                    purchased_at TEXT,
+                    expires_at TEXT,
+                    is_active BOOLEAN DEFAULT 1,
+                    payment_status TEXT DEFAULT 'pending',
+                    telegram_charge_id TEXT,
+                    provider_charge_id TEXT,
+                    amount REAL,
+                    currency_code TEXT,
+                    created_at TEXT,
+                    FOREIGN KEY (user_id) REFERENCES users (id),
+                    FOREIGN KEY (package_id) REFERENCES packages (id),
+                    FOREIGN KEY (post_id) REFERENCES posts (id)
+                )
+            """)
+            
+            # User free posts tracking
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS user_free_posts (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT,
+                    created_at TEXT,
+                    next_free_post_at TEXT,
+                    FOREIGN KEY (user_id) REFERENCES users (id)
+                )
+            """)
+            
+            # Post boost schedule
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS post_boost_schedule (
+                    id TEXT PRIMARY KEY,
+                    post_id TEXT,
+                    next_boost_at TEXT,
+                    boost_count INTEGER DEFAULT 0,
+                    is_active BOOLEAN DEFAULT 1,
+                    created_at TEXT,
+                    FOREIGN KEY (post_id) REFERENCES posts (id)
+                )
+            """)
+            
+            # AI moderation log
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS ai_moderation_log (
+                    id TEXT PRIMARY KEY,
+                    post_id TEXT,
+                    ai_decision TEXT,
+                    ai_confidence REAL,
+                    ai_reason TEXT,
+                    moderated_at TEXT,
+                    FOREIGN KEY (post_id) REFERENCES posts (id)
                 )
             """)
             
