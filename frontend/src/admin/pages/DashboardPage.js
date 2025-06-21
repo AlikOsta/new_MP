@@ -64,21 +64,13 @@ const DashboardPage = () => {
     );
   }
 
-  // Sample chart data
-  const userGrowthData = stats.users.daily_users || [
-    { date: '2024-01-01', count: 5 },
-    { date: '2024-01-02', count: 8 },
-    { date: '2024-01-03', count: 12 },
-    { date: '2024-01-04', count: 15 },
-    { date: '2024-01-05', count: 20 },
-    { date: '2024-01-06', count: 18 },
-    { date: '2024-01-07', count: 25 }
-  ];
+  // Sample chart data - only use real data
+  const userGrowthData = stats.users.daily_users || [];
 
-  const postTypesData = [
-    { name: 'Работа', value: stats.posts.posts_by_type?.job || 0 },
-    { name: 'Услуги', value: stats.posts.posts_by_type?.service || 0 }
-  ];
+  const postTypesData = stats.posts.posts_by_type ? [
+    { name: 'Работа', value: stats.posts.posts_by_type.job || 0, color: '#3b82f6' },
+    { name: 'Услуги', value: stats.posts.posts_by_type.service || 0, color: '#10b981' }
+  ] : [];
 
   return (
     <div className="space-y-6">
