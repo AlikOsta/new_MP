@@ -248,4 +248,10 @@ export const createPayment = (paymentData, userId) => apiService.createPayment(p
 export const getPayment = (paymentId) => apiService.getPayment(paymentId);
 export const completePayment = (paymentId, telegramChargeId, providerChargeId) => apiService.completePayment(paymentId, telegramChargeId, providerChargeId);
 
+// Authentication exports
+export const authenticateWithTelegram = (initData) => apiService.authenticateWithTelegram(initData);
+export const verifyAuthentication = () => apiService.verifyAuthentication();
+export const getCurrentUser = () => apiService.getCurrentUser();
+export const logout = () => apiService.logout();
+
 export default apiService;
