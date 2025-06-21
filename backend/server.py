@@ -773,8 +773,9 @@ async def update_user(user_id: str, request: Request):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup - Initialize database
+    # Startup - Initialize database and moderation services
     await db.init_db()
+    await init_moderation_services()
     yield
     # Shutdown - Database connection is handled in database.py
 
