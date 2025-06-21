@@ -5,7 +5,7 @@ Replaces the monolithic server.py with proper separation of concerns
 import sys
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -21,10 +21,10 @@ from background_tasks import start_background_tasks, stop_background_tasks
 
 # Import all routers
 from routers import (
-    categories_router,
-    posts_router,
-    packages_router,
     admin_router,
+    categories_router,
+    packages_router,
+    posts_router,
     users_router,
     webhook_router
 )
