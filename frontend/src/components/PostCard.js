@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const PostCard = ({ post, onAddToFavorites, onViewDetails, currencies, cities, isFavorite }) => {
+const PostCard = ({ post, onAddToFavorites, onViewDetails, currencies, cities, isFavorite, isUserAuthenticated }) => {
   const [localIsFavorite, setLocalIsFavorite] = useState(isFavorite);
 
   useEffect(() => {
