@@ -116,6 +116,9 @@
         - working: true
           agent: "main"
           comment: "Полный API с endpoints для категорий, постов, пользователей, избранного, админки. MongoDB интеграция работает."
+        - working: true
+          agent: "testing"
+          comment: "Протестирована админ-панель Telegram Marketplace. Большинство API работают корректно, но есть проблема с получением обновленных настроек (500 Internal Server Error). Ошибка связана с ObjectId в MongoDB, который не может быть сериализован в JSON. Остальные функции админки (авторизация, статистика, CRUD валют) работают правильно."
 
 ## frontend:
   - task: "React приложение с полным UI"
