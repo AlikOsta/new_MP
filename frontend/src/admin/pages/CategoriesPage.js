@@ -16,6 +16,56 @@ const CategoriesPage = () => {
 
   useEffect(() => {
     loadCategories();
+  }, []);
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    try {
+      // TODO: Add API endpoint for creating categories
+      alert('Создание категорий пока не реализовано в API');
+      setShowCreateModal(false);
+      setFormData({ name_ru: '', name_ua: '', icon: '', is_active: true });
+    } catch (err) {
+      console.error('Error creating category:', err);
+    }
+  };
+
+  const handleEdit = async (e) => {
+    e.preventDefault();
+    try {
+      // TODO: Add API endpoint for updating categories
+      alert('Редактирование категорий пока не реализовано в API');
+      setShowEditModal(false);
+      setSelectedCategory(null);
+      setFormData({ name_ru: '', name_ua: '', icon: '', is_active: true });
+    } catch (err) {
+      console.error('Error updating category:', err);
+    }
+  };
+
+  const handleDelete = async (categoryId) => {
+    if (!window.confirm('Вы уверены, что хотите удалить эту категорию?')) {
+      return;
+    }
+
+    try {
+      // TODO: Add API endpoint for deleting categories
+      alert('Удаление категорий пока не реализовано в API');
+    } catch (err) {
+      console.error('Error deleting category:', err);
+    }
+  };
+
+  const openEditModal = (category) => {
+    setSelectedCategory(category);
+    setFormData({
+      name_ru: category.name_ru,
+      name_ua: category.name_ua,
+      icon: category.icon,
+      is_active: category.is_active
+    });
+    setShowEditModal(true);
+  };
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
