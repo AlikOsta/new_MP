@@ -2,6 +2,7 @@
 Routers package for API endpoints
 """
 from .admin import router as admin_router
+from .auth import router as auth_router
 from .categories import router as categories_router
 from .packages import router as packages_router
 from .posts import router as posts_router
@@ -10,6 +11,7 @@ from .webhook import router as webhook_router
 
 __all__ = [
     "admin_router",
+    "auth_router",
     "categories_router", 
     "packages_router",
     "posts_router",
