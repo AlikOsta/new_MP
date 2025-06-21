@@ -88,10 +88,16 @@ const CitiesPage = () => {
                 </td>
                 <td>
                   <div className="flex space-x-2">
-                    <button className="admin-btn admin-btn-outline text-xs">
+                    <button 
+                      onClick={() => alert(`Редактирование города "${city.name_ru}" будет добавлено в следующем обновлении`)}
+                      className="admin-btn admin-btn-outline text-xs"
+                    >
                       Редактировать
                     </button>
-                    <button className="admin-btn admin-btn-danger text-xs">
+                    <button 
+                      onClick={() => alert(`Удаление города "${city.name_ru}" будет добавлено в следующем обновлении`)}
+                      className="admin-btn admin-btn-danger text-xs"
+                    >
                       Удалить
                     </button>
                   </div>
