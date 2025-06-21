@@ -590,8 +590,7 @@ async def lifespan(app: FastAPI):
     # Startup - Initialize default data
     await initialize_default_data()
     yield
-    # Shutdown
-    client.close()
+    # Shutdown - Database connection is handled in database.py
 
 app = FastAPI(
     title="Telegram Marketplace API",
