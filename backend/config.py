@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Database configuration
-MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017/telegram_marketplace')
+# Database configuration (SQLite)
+DATABASE_PATH = os.environ.get('DATABASE_PATH', 'telegram_marketplace.db')
 
 # Admin credentials (from environment variables)
 ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
