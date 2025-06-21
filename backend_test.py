@@ -1526,6 +1526,76 @@ class TelegramMarketplaceAPITester:
             else:
                 print(f"❌ Verification failed: Found {posts_stats_data['total_posts']} posts in admin stats - demo posts may not have been cleaned up")
         
+    def test_api_performance(self):
+        """Test API performance for key endpoints"""
+        print("\n--- Testing API Performance ---")
+        
+        # Test health check performance
+        self.run_test("Health Check Performance", "GET", "api/health", measure_performance=True)
+        
+        # Test reference data performance
+        self.run_test("Reference Data Performance", "GET", "api/categories/all", measure_performance=True)
+        
+        # Test posts listing performance
+        self.run_test("Posts Listing Performance", "GET", "api/posts/", measure_performance=True)
+        
+        # Test packages listing performance
+        self.run_test("Packages Listing Performance", "GET", "api/packages/", measure_performance=True)
+        
+        # Print performance summary
+        print("\n--- API Performance Summary ---")
+        for endpoint, metrics in self.performance_metrics.items():
+            print(f"{endpoint}: {metrics['response_time_ms']:.2f} ms - {metrics['endpoint']} ({metrics['method']})")
+        
+        # Check if performance meets requirements (under 10ms for key endpoints)
+        fast_endpoints = [m for m in self.performance_metrics.values() if m["response_time_ms"] < 10]
+        if len(fast_endpoints) >= 3:  # At least 3 endpoints should be fast
+            print("✅ Performance verification: Most endpoints respond in under 10ms")
+            return True, self.performance_metrics
+        else:
+            print("❌ Performance verification failed: Less than 3 endpoints respond in under 10ms")
+            return False, self.performance_metrics
+            
+    def test_admin_credentials_from_env(self):
+        """Test that admin credentials are loaded from environment variables"""
+        print("\n--- Testing Admin Credentials from Environment Variables ---")
+        
+        # Load environment variables
+        from dotenv import load_dotenv
+        load_dotenv("/app/backend/.env")
+        
+        # Check if admin credentials are set in environment
+        admin_username = os.environ.get("ADMIN_USERNAME")
+        admin_password = os.environ.get("ADMIN_PASSWORD")
+        
+        if not admin_username or not admin_password:
+            print("❌ Verification failed: Admin credentials not found in environment variables")
+            return False, None
+            
+        print(f"✅ Verified: Admin credentials found in environment variables")
+        
+        # Try to login with these credentials
+        login_data = {
+            "username": admin_username,
+            "password": admin_password
+        }
+        
+        success, data = self.run_test(
+            "Admin Login with Environment Credentials",
+            "POST",
+            "api/admin/login",
+            200,
+            data=login_data
+        )
+        
+        if success and data and data.get("success"):
+            print("✅ Verified: Successfully logged in with environment credentials")
+            self.admin_token = data.get("token")
+            return True, data
+        else:
+            print("❌ Verification failed: Could not login with environment credentials")
+            return False, data
+
     def print_summary(self):
         """Print test summary"""
         print("\n" + "="*50)
@@ -1546,89 +1616,54 @@ class TelegramMarketplaceAPITester:
                 for name, result in failed_tests.items():
                     print(f"- {name}: {result.get('error', 'Unknown error')}")
         
+        # Print performance summary if available
+        if self.performance_metrics:
+            print("\n--- API Performance Summary ---")
+            for endpoint, metrics in self.performance_metrics.items():
+                print(f"{endpoint}: {metrics['response_time_ms']:.2f} ms")
+        
         return self.tests_passed == self.tests_run
 
-def test_auth_required_for_posts(self):
-    """Test that authentication is required for creating posts"""
-    print("\n--- Testing Authentication Required for Posts ---")
+def main():
+    # Get the backend URL from environment or use default
+    from dotenv import load_dotenv
+    load_dotenv("/app/frontend/.env")
     
-    # Test job post creation without auth header
-    if not (self.categories_data and self.cities_data and self.currencies_data):
-        print("❌ Cannot test auth requirement: Missing required data")
-        return False, None
+    backend_url = os.environ.get("REACT_APP_BACKEND_URL", "http://localhost:8001")
+    print(f"Using backend URL: {backend_url}")
     
-    job_category = next((cat for cat in self.categories_data if cat.get("name_ru") == "Работа"), None)
-    city = self.cities_data[0] if self.cities_data else None
-    currency = next((curr for curr in self.currencies_data if curr.get("code") == "RUB"), None)
+    tester = TelegramMarketplaceAPITester(backend_url)
     
-    if not (job_category and city and currency):
-        print("❌ Cannot test auth requirement: Missing required reference data")
-        return False, None
+    # Basic endpoints
+    tester.test_health_check()
+    tester.test_get_all_reference_data()
+    tester.test_get_posts()
     
-    job_data = {
-        "title": f"Test Auth Job Post {datetime.now().strftime('%H%M%S')}",
-        "description": "This is a test job post to verify auth requirement",
-        "price": 1500,
-        "currency_id": currency.get("id"),
-        "super_rubric_id": job_category.get("id"),
-        "city_id": city.get("id")
-    }
+    # Create test user
+    tester.test_create_user()
     
-    # Test without auth header - should fail with auth error
-    job_success, job_response = self.run_test(
-        "Create Job Post Without Auth",
-        "POST",
-        "api/posts/jobs",
-        200,  # API returns 200 even for auth errors
-        data=job_data
-    )
+    # Authorization and post creation
+    tester.test_auth_required_for_posts()
+    tester.test_create_job_post()
+    tester.test_create_service_post()
     
-    job_auth_required = False
-    if job_success and job_response and "error" in job_response:
-        if "authentication required" in job_response["error"].lower():
-            print("✅ Verified: Job post creation requires authentication")
-            job_auth_required = True
-        else:
-            print(f"❌ Verification failed: Job post without auth returned unexpected error: {job_response['error']}")
-    else:
-        print("❌ Verification failed: Job post without auth did not return expected error")
+    # Packages and tariffs
+    tester.test_packages_endpoint()
+    tester.test_check_free_post_availability()
     
-    # Test service post creation without auth header
-    service_category = next((cat for cat in self.categories_data if cat.get("name_ru") == "Услуги"), None)
+    # Admin functions
+    tester.test_admin_credentials_from_env()
+    tester.test_admin_get_settings()
     
-    if not service_category:
-        print("❌ Cannot test service auth requirement: Missing service category")
-        return job_auth_required, None
+    # Additional checks
+    tester.test_data_cleanup()
+    tester.test_api_performance()
     
-    service_data = {
-        "title": f"Test Auth Service Post {datetime.now().strftime('%H%M%S')}",
-        "description": "This is a test service post to verify auth requirement",
-        "price": 2500,
-        "currency_id": currency.get("id"),
-        "super_rubric_id": service_category.get("id"),
-        "city_id": city.get("id")
-    }
-    
-    # Test without auth header - should fail with auth error
-    service_success, service_response = self.run_test(
-        "Create Service Post Without Auth",
-        "POST",
-        "api/posts/services",
-        200,  # API returns 200 even for auth errors
-        data=service_data
-    )
-    
-    service_auth_required = False
-    if service_success and service_response and "error" in service_response:
-        if "authentication required" in service_response["error"].lower():
-            print("✅ Verified: Service post creation requires authentication")
-            service_auth_required = True
-        else:
-            print(f"❌ Verification failed: Service post without auth returned unexpected error: {service_response['error']}")
-    else:
-        print("❌ Verification failed: Service post without auth did not return expected error")
-    
-    return job_auth_required and service_auth_required, {"job": job_response, "service": service_response}
+    # Print summary
+    tester.print_summary()
+
+if __name__ == "__main__":
+    main()
 
 def test_admin_login_with_env_credentials(self):
     """Test admin login with credentials from environment variables"""
