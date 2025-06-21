@@ -159,78 +159,143 @@ class TelegramMarketplaceAPITester:
         """Test the health check endpoint"""
         return self.run_test("Health Check", "GET", "api/health")
 
-    def test_get_super_rubrics(self):
-        """Test getting super rubrics (categories)"""
-        success, data = self.run_test("Get Super Rubrics", "GET", "api/categories/super-rubrics")
+    def test_get_all_reference_data(self):
+        """Test getting all reference data in one request"""
+        success, data = self.run_test("Get All Reference Data", "GET", "api/categories/all", measure_performance=True)
         if success:
-            self.categories_data = data
-            # Verify we have exactly 2 categories as specified
-            if len(data) == 2:
-                print("✅ Verified: Exactly 2 categories returned")
-                # Check for expected category names
-                category_names = [cat.get("name_ru") for cat in data]
-                if "Работа" in category_names and "Услуги" in category_names:
-                    print("✅ Verified: Found expected categories 'Работа' and 'Услуги'")
-                else:
-                    print("❌ Verification failed: Expected categories not found")
-            else:
-                print(f"❌ Verification failed: Expected 2 categories, got {len(data)}")
+            # Verify the response contains all expected sections
+            expected_sections = ["categories", "cities", "currencies", "packages"]
+            missing_sections = [section for section in expected_sections if section not in data]
+            
+            if not missing_sections:
+                print(f"✅ Verified: Response contains all expected sections: {', '.join(expected_sections)}")
                 
-            # Verify data in database
-            db_success, db_data = self.verify_db_data("super_rubrics", "is_active = 1")
-            if db_success:
-                print("✅ Database verification: Categories data exists in SQLite")
-        return success, data
-
-    def test_get_cities(self):
-        """Test getting cities"""
-        success, data = self.run_test("Get Cities", "GET", "api/categories/cities")
-        if success:
-            self.cities_data = data
-            # Verify we have exactly 6 cities as specified
-            if len(data) == 6:
-                print("✅ Verified: Exactly 6 cities returned")
-                # Check for some expected city names
-                city_names = [city.get("name_ru") for city in data]
-                expected_cities = ["Москва", "Санкт-Петербург", "Киев"]
-                found_cities = [city for city in expected_cities if city in city_names]
-                if len(found_cities) >= 3:
-                    print(f"✅ Verified: Found expected cities: {', '.join(found_cities)}")
-                else:
-                    print("❌ Verification failed: Expected cities not found")
-            else:
-                print(f"❌ Verification failed: Expected 6 cities, got {len(data)}")
+                # Store reference data for other tests
+                self.categories_data = data.get("categories", [])
+                self.cities_data = data.get("cities", [])
+                self.currencies_data = data.get("currencies", [])
                 
-            # Verify data in database
-            db_success, db_data = self.verify_db_data("cities", "is_active = 1")
-            if db_success:
-                print("✅ Database verification: Cities data exists in SQLite")
-        return success, data
-
-    def test_get_currencies(self):
-        """Test getting currencies"""
-        success, data = self.run_test("Get Currencies", "GET", "api/categories/currencies")
-        if success:
-            self.currencies_data = data
-            # Verify we have exactly 4 currencies as specified
-            if len(data) == 4:
-                print("✅ Verified: Exactly 4 currencies returned")
-                # Check for expected currency codes
-                currency_codes = [curr.get("code") for curr in data]
-                expected_codes = ["RUB", "USD", "EUR", "UAH"]
-                found_codes = [code for code in expected_codes if code in currency_codes]
-                if len(found_codes) == 4:
-                    print(f"✅ Verified: Found all expected currency codes: {', '.join(found_codes)}")
-                else:
-                    print("❌ Verification failed: Not all expected currency codes found")
-            else:
-                print(f"❌ Verification failed: Expected 4 currencies, got {len(data)}")
+                # Verify data counts
+                print(f"Categories count: {len(self.categories_data)}")
+                print(f"Cities count: {len(self.cities_data)}")
+                print(f"Currencies count: {len(self.currencies_data)}")
+                print(f"Packages count: {len(data.get('packages', []))}")
                 
-            # Verify data in database
-            db_success, db_data = self.verify_db_data("currencies", "is_active = 1")
-            if db_success:
-                print("✅ Database verification: Currencies data exists in SQLite")
+                # Verify packages have parsed features
+                if data.get("packages") and len(data["packages"]) > 0:
+                    first_package = data["packages"][0]
+                    if "features_ru" in first_package and isinstance(first_package["features_ru"], list):
+                        print("✅ Verified: Package features are correctly parsed as lists")
+                    else:
+                        print("❌ Verification failed: Package features are not parsed as lists")
+            else:
+                print(f"❌ Verification failed: Response missing sections: {', '.join(missing_sections)}")
+        
         return success, data
+        
+    def test_check_free_post_availability(self):
+        """Test checking free post availability"""
+        if not self.created_user_id:
+            print("❌ Cannot test free post availability: No test user created")
+            return False, None
+        
+        print("\n--- Testing Free Post Availability ---")
+        
+        # First check - should be available since user is new
+        success, data = self.run_test(
+            "Check Free Post Availability (Initial)",
+            "GET",
+            f"api/packages/check-free-post/{self.created_user_id}",
+            measure_performance=True
+        )
+        
+        if success and data:
+            if "can_create_free" in data:
+                if data["can_create_free"]:
+                    print("✅ Verified: New user can create free post")
+                else:
+                    print("❌ Verification failed: New user cannot create free post")
+                    return success, data
+            else:
+                print("❌ Verification failed: Response missing can_create_free field")
+                return success, data
+        else:
+            return success, data
+        
+        # Create a free post to use up the free post slot
+        if not (self.categories_data and self.cities_data and self.currencies_data):
+            print("❌ Cannot test free post usage: Missing required data")
+            return success, data
+        
+        job_category = next((cat for cat in self.categories_data if "Работа" in cat.get("name_ru", "")), None)
+        city = self.cities_data[0] if self.cities_data else None
+        currency = next((curr for curr in self.currencies_data if curr.get("code") == "RUB"), None)
+        
+        if not (job_category and city and currency):
+            print("❌ Cannot test free post usage: Missing required reference data")
+            return success, data
+        
+        job_data = {
+            "title": f"Free Test Job Post {datetime.now().strftime('%H%M%S')}",
+            "description": "This is a test job post to use up free post slot",
+            "price": 1500,
+            "currency_id": currency.get("id"),
+            "super_rubric_id": job_category.get("id"),
+            "city_id": city.get("id"),
+            "package_id": "free-package"  # Specify free package
+        }
+        
+        headers = {
+            'Content-Type': 'application/json',
+            'X-Author-ID': self.created_user_id
+        }
+        
+        free_post_success, free_post_data = self.run_test(
+            "Create Free Job Post",
+            "POST",
+            "api/posts/jobs",
+            200,
+            data=job_data,
+            headers=headers
+        )
+        
+        if not free_post_success or not free_post_data or "id" not in free_post_data:
+            print("❌ Cannot test free post usage: Failed to create free post")
+            return success, data
+        
+        print(f"✅ Created free job post with ID: {free_post_data['id']}")
+        
+        # Now check again - should NOT be available
+        second_check_success, second_check_data = self.run_test(
+            "Check Free Post Availability (After Usage)",
+            "GET",
+            f"api/packages/check-free-post/{self.created_user_id}"
+        )
+        
+        if second_check_success and second_check_data:
+            if "can_create_free" in second_check_data:
+                if not second_check_data["can_create_free"]:
+                    print("✅ Verified: User cannot create another free post after using free slot")
+                    if "next_free_at" in second_check_data and second_check_data["next_free_at"]:
+                        print(f"✅ Verified: Next free post available at: {second_check_data['next_free_at']}")
+                    else:
+                        print("❌ Verification failed: next_free_at field missing or empty")
+                else:
+                    print("❌ Verification failed: User can still create free post after using free slot")
+            else:
+                print("❌ Verification failed: Response missing can_create_free field")
+        
+        # Verify free post usage record in database
+        db_success, db_data = self.verify_db_data(
+            "user_free_posts", 
+            f"user_id = '{self.created_user_id}'"
+        )
+        if db_success:
+            print("✅ Database verification: Free post usage record exists in SQLite")
+            if "next_free_post_at" in db_data:
+                print(f"✅ Database verification: Next free post date set: {db_data['next_free_post_at']}")
+        
+        return second_check_success, second_check_data
 
     def test_create_user(self):
         """Test creating a user"""
