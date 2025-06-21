@@ -44,16 +44,80 @@ function App() {
   const [selectedPost, setSelectedPost] = useState(null);
   const [favorites, setFavorites] = useState([]);
   
-  // User data
-  const [currentUser, setCurrentUser] = useState({
-    id: '6855dc265afe51e45102bc68',
-    telegram_id: 123456789,
-    first_name: 'Alex',
-    last_name: 'Smith',
-    username: 'alex',
-    language: 'ru',
-    theme: 'light'
-  });
+  // User data - simulate Telegram WebApp user
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isAuthenticating, setIsAuthenticating] = useState(true);
+
+  // Simulate Telegram WebApp authentication
+  useEffect(() => {
+    // Simulate checking Telegram WebApp InitData
+    const initTelegramAuth = () => {
+      setIsAuthenticating(true);
+      
+      // For demo purposes, simulate user from localStorage or create demo user
+      const savedUser = localStorage.getItem('telegram_user');
+      if (savedUser) {
+        try {
+          setCurrentUser(JSON.parse(savedUser));
+        } catch (err) {
+          console.error('Error parsing saved user:', err);
+        }
+      } else {
+        // Create demo user for testing
+        const demoUser = {
+          id: '6855dc265afe51e45102bc68',
+          telegram_id: 123456789,
+          first_name: 'Alex',
+          last_name: 'Smith',
+          username: 'alex',
+          language: 'ru',
+          theme: 'light'
+        };
+        setCurrentUser(demoUser);
+        localStorage.setItem('telegram_user', JSON.stringify(demoUser));
+      }
+      
+      setIsAuthenticating(false);
+    };
+
+    // Simulate async auth check
+    setTimeout(initTelegramAuth, 500);
+  }, []);
+
+  const handleTelegramAuth = () => {
+    // In real app, this would trigger Telegram WebApp authorization
+    alert('В реальном Telegram Mini App здесь будет авторизация через Telegram');
+    
+    // For demo, create a user
+    const user = {
+      id: '6855dc265afe51e45102bc68',
+      telegram_id: Math.floor(Math.random() * 1000000000),
+      first_name: 'User',
+      last_name: 'Demo',
+      username: 'demo_user',
+      language: 'ru',
+      theme: 'light'
+    };
+    
+    setCurrentUser(user);
+    localStorage.setItem('telegram_user', JSON.stringify(user));
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('telegram_user');
+    setCurrentPage('home');
+  };
+
+  const requireAuth = (action) => {
+    if (!currentUser) {
+      if (window.confirm('Для этого действия необходимо авторизоваться через Telegram. Войти?')) {
+        handleTelegramAuth();
+      }
+      return false;
+    }
+    return true;
+  };
 
   useEffect(() => {
     loadInitialData();
