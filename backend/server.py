@@ -813,6 +813,7 @@ async def check_free_post_availability(user_id: str):
         "next_free_at": last_free["next_free_post_at"] if not can_create else None
     }
 app.include_router(categories_router)
+app.include_router(packages_router)
 app.include_router(posts_router)
 app.include_router(admin_router)
 app.include_router(users_router)
