@@ -12,7 +12,7 @@
 
 ### 🔥 Основное приложение
 ```
-https://51d971f9-1e69-4e09-9727-e45dadcdbabe.preview.emergentagent.com
+https://958e1ad6-00a3-4c3e-a8b5-fdd4fba26a4a.preview.emergentagent.com
 ```
 
 ### 🔑 Новые Auth Endpoints
@@ -20,7 +20,7 @@ https://51d971f9-1e69-4e09-9727-e45dadcdbabe.preview.emergentagent.com
 #### 1. Авторизация через Telegram (POST)
 ```bash
 curl -X POST \
-  https://51d971f9-1e69-4e09-9727-e45dadcdbabe.preview.emergentagent.com/api/auth/telegram \
+  https://958e1ad6-00a3-4c3e-a8b5-fdd4fba26a4a.preview.emergentagent.com/api/auth/telegram \
   -H "Content-Type: application/json" \
   -d '{
     "init_data": "query_id=AAE...&user=%7B%22id%22%3A123456789..."
@@ -31,20 +31,20 @@ curl -X POST \
 #### 2. Проверка авторизации (GET)
 ```bash
 curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  https://51d971f9-1e69-4e09-9727-e45dadcdbabe.preview.emergentagent.com/api/auth/verify
+  https://958e1ad6-00a3-4c3e-a8b5-fdd4fba26a4a.preview.emergentagent.com/api/auth/verify
 ```
 
 #### 3. Получение текущего пользователя (GET)
 ```bash
 curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  https://51d971f9-1e69-4e09-9727-e45dadcdbabe.preview.emergentagent.com/api/auth/me
+  https://958e1ad6-00a3-4c3e-a8b5-fdd4fba26a4a.preview.emergentagent.com/api/auth/me
 ```
 
 #### 4. Выход (POST)
 ```bash
 curl -X POST \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  https://51d971f9-1e69-4e09-9727-e45dadcdbabe.preview.emergentagent.com/api/auth/logout
+  https://958e1ad6-00a3-4c3e-a8b5-fdd4fba26a4a.preview.emergentagent.com/api/auth/logout
 ```
 
 ### 🧪 Тестирование в браузере
@@ -55,7 +55,7 @@ curl -X POST \
 const initData = window.Telegram.WebApp.initData;
 
 // 2. Авторизоваться
-fetch('https://51d971f9-1e69-4e09-9727-e45dadcdbabe.preview.emergentagent.com/api/auth/telegram', {
+fetch('https://958e1ad6-00a3-4c3e-a8b5-fdd4fba26a4a.preview.emergentagent.com/api/auth/telegram', {
   method: 'POST',
   headers: {'Content-Type': 'application/json'},
   body: JSON.stringify({init_data: initData})
@@ -68,7 +68,7 @@ fetch('https://51d971f9-1e69-4e09-9727-e45dadcdbabe.preview.emergentagent.com/ap
 
 // 3. Проверить авторизацию
 const token = localStorage.getItem('auth_token');
-fetch('https://51d971f9-1e69-4e09-9727-e45dadcdbabe.preview.emergentagent.com/api/auth/verify', {
+fetch('https://958e1ad6-00a3-4c3e-a8b5-fdd4fba26a4a.preview.emergentagent.com/api/auth/verify', {
   headers: {'Authorization': `Bearer ${token}`}
 })
 .then(r => r.json())
@@ -82,7 +82,7 @@ fetch('https://51d971f9-1e69-4e09-9727-e45dadcdbabe.preview.emergentagent.com/ap
 ```bash
 # Создание тестового пользователя (БЕЗ проверки безопасности)
 curl -X POST \
-  https://51d971f9-1e69-4e09-9727-e45dadcdbabe.preview.emergentagent.com/api/users/ \
+  https://958e1ad6-00a3-4c3e-a8b5-fdd4fba26a4a.preview.emergentagent.com/api/users/ \
   -H "Content-Type: application/json" \
   -d '{
     "telegram_id": 123456789,
@@ -117,7 +117,7 @@ curl -X POST \
 ### 2. Создайте Mini App:
 1. В [@BotFather](https://t.me/botfather): `/newapp`
 2. Выберите вашего бота
-3. URL: `https://51d971f9-1e69-4e09-9727-e45dadcdbabe.preview.emergentagent.com`
+3. URL: `https://958e1ad6-00a3-4c3e-a8b5-fdd4fba26a4a.preview.emergentagent.com`
 4. Получите ссылку: `https://t.me/your_bot/your_app`
 
 ### 3. Тестируйте авторизацию:

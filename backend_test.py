@@ -1804,7 +1804,7 @@ def test_packages_endpoint(self):
 
 def main():
     # Get the backend URL from the frontend .env file
-    backend_url = "https://51d971f9-1e69-4e09-9727-e45dadcdbabe.preview.emergentagent.com"
+    backend_url = "https://958e1ad6-00a3-4c3e-a8b5-fdd4fba26a4a.preview.emergentagent.com"
     
     print(f"Testing SQLite API at: {backend_url}")
     
