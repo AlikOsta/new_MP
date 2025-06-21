@@ -63,15 +63,17 @@ const PostCard = ({ post, onAddToFavorites, onViewDetails, currencies, cities, i
           </div>
         )}
         
-        {/* Favorite button */}
-        <button
-          onClick={handleFavoriteClick}
-          className="absolute top-2 right-2 w-6 h-6 bg-white bg-opacity-90 rounded-full flex items-center justify-center shadow"
-        >
-          <span className={`text-xs ${localIsFavorite ? 'text-red-500' : 'text-gray-400'}`}>
-            {localIsFavorite ? '❤️' : '🤍'}
-          </span>
-        </button>
+        {/* Favorite button - only for authenticated users */}
+        {isUserAuthenticated && (
+          <button
+            onClick={handleFavoriteClick}
+            className="absolute top-2 right-2 w-6 h-6 bg-white bg-opacity-90 rounded-full flex items-center justify-center shadow"
+          >
+            <span className={`text-xs ${localIsFavorite ? 'text-red-500' : 'text-gray-400'}`}>
+              {localIsFavorite ? '❤️' : '🤍'}
+            </span>
+          </button>
+        )}
 
         {/* Premium badge */}
         {post.is_premium && (
