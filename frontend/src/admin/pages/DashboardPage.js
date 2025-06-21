@@ -72,6 +72,11 @@ const DashboardPage = () => {
     { name: 'Услуги', value: stats.posts.posts_by_type.service || 0, color: '#10b981' }
   ] : [];
 
+  const postStatusData = [
+    { status: 'Активные', count: stats.posts.active_posts || 0 },
+    { status: 'Всего', count: stats.posts.total_posts || 0 }
+  ];
+
   return (
     <div className="space-y-6">
       {/* Welcome Message */}
