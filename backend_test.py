@@ -1259,27 +1259,194 @@ class TelegramMarketplaceAPITester:
         
         return success, data
 
-    def print_summary(self):
-        """Print test summary"""
-        print("\n" + "="*50)
-        print(f"📊 Test Summary: {self.tests_passed}/{self.tests_run} tests passed")
-        print("="*50)
+    def test_auth_required_for_posts(self):
+        """Test that authentication is required for creating posts"""
+        print("\n--- Testing Authentication Required for Posts ---")
         
-        if self.tests_passed == self.tests_run:
-            print("✅ All tests passed!")
+        # Test job post creation without auth header
+        if not (self.categories_data and self.cities_data and self.currencies_data):
+            print("❌ Cannot test auth requirement: Missing required data")
+            return False, None
+        
+        job_category = next((cat for cat in self.categories_data if cat.get("name_ru") == "Работа"), None)
+        city = self.cities_data[0] if self.cities_data else None
+        currency = next((curr for curr in self.currencies_data if curr.get("code") == "RUB"), None)
+        
+        if not (job_category and city and currency):
+            print("❌ Cannot test auth requirement: Missing required reference data")
+            return False, None
+        
+        job_data = {
+            "title": f"Test Auth Job Post {datetime.now().strftime('%H%M%S')}",
+            "description": "This is a test job post to verify auth requirement",
+            "price": 1500,
+            "currency_id": currency.get("id"),
+            "super_rubric_id": job_category.get("id"),
+            "city_id": city.get("id")
+        }
+        
+        # Test without auth header - should fail with auth error
+        job_success, job_response = self.run_test(
+            "Create Job Post Without Auth",
+            "POST",
+            "api/posts/jobs",
+            200,  # API returns 200 even for auth errors
+            data=job_data
+        )
+        
+        job_auth_required = False
+        if job_success and job_response and "error" in job_response:
+            if "authentication required" in job_response["error"].lower():
+                print("✅ Verified: Job post creation requires authentication")
+                job_auth_required = True
+            else:
+                print(f"❌ Verification failed: Job post without auth returned unexpected error: {job_response['error']}")
         else:
-            print("❌ Some tests failed.")
-            
-            # Print failed tests
-            failed_tests = {name: result for name, result in self.test_results.items() 
-                           if result["status"] != "passed"}
-            
-            if failed_tests:
-                print("\nFailed tests:")
-                for name, result in failed_tests.items():
-                    print(f"- {name}: {result.get('error', 'Unknown error')}")
+            print("❌ Verification failed: Job post without auth did not return expected error")
         
-        return self.tests_passed == self.tests_run
+        # Test service post creation without auth header
+        service_category = next((cat for cat in self.categories_data if cat.get("name_ru") == "Услуги"), None)
+        
+        if not service_category:
+            print("❌ Cannot test service auth requirement: Missing service category")
+            return job_auth_required, None
+        
+        service_data = {
+            "title": f"Test Auth Service Post {datetime.now().strftime('%H%M%S')}",
+            "description": "This is a test service post to verify auth requirement",
+            "price": 2500,
+            "currency_id": currency.get("id"),
+            "super_rubric_id": service_category.get("id"),
+            "city_id": city.get("id")
+        }
+        
+        # Test without auth header - should fail with auth error
+        service_success, service_response = self.run_test(
+            "Create Service Post Without Auth",
+            "POST",
+            "api/posts/services",
+            200,  # API returns 200 even for auth errors
+            data=service_data
+        )
+        
+        service_auth_required = False
+        if service_success and service_response and "error" in service_response:
+            if "authentication required" in service_response["error"].lower():
+                print("✅ Verified: Service post creation requires authentication")
+                service_auth_required = True
+            else:
+                print(f"❌ Verification failed: Service post without auth returned unexpected error: {service_response['error']}")
+        else:
+            print("❌ Verification failed: Service post without auth did not return expected error")
+        
+        return job_auth_required and service_auth_required, {"job": job_response, "service": service_response}
+    
+    def test_admin_login_with_env_credentials(self):
+        """Test admin login with credentials from environment variables"""
+        print("\n--- Testing Admin Login with Environment Variables ---")
+        
+        # Get credentials from environment variables
+        import os
+        from dotenv import load_dotenv
+        
+        # Load environment variables from .env file
+        load_dotenv("/app/backend/.env")
+        
+        admin_username = os.environ.get("ADMIN_USERNAME", "admin")
+        admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
+        
+        print(f"Using admin credentials from environment variables: {admin_username}")
+        
+        login_data = {
+            "username": admin_username,
+            "password": admin_password
+        }
+        
+        success, data = self.run_test(
+            "Admin Login with Env Credentials",
+            "POST",
+            "api/admin/login",
+            200,
+            data=login_data
+        )
+        
+        if success and data:
+            if data.get("success") and "token" in data and "user" in data:
+                print("✅ Verified: Admin login successful with environment credentials")
+                self.admin_token = data.get("token")
+            else:
+                print("❌ Verification failed: Admin login with environment credentials failed")
+                success = False
+        
+        return success, data
+    
+    def test_data_cleanup(self):
+        """Test that demo data has been cleaned up"""
+        print("\n--- Testing Data Cleanup ---")
+        
+        # Test posts cleanup
+        posts_success, posts_data = self.run_test(
+            "Check Posts Cleanup",
+            "GET",
+            "api/posts/"
+        )
+        
+        posts_empty = False
+        if posts_success and isinstance(posts_data, list):
+            if len(posts_data) == 0:
+                print("✅ Verified: No posts found - demo posts have been cleaned up")
+                posts_empty = True
+            else:
+                print(f"❌ Verification failed: Found {len(posts_data)} posts - demo posts may not have been cleaned up")
+        
+        # Test users cleanup via admin stats
+        if not self.admin_token:
+            print("❌ Cannot test users cleanup: No admin token available")
+            return posts_empty, None
+        
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.admin_token}'
+        }
+        
+        users_success, users_data = self.run_test(
+            "Check Users Cleanup via Admin Stats",
+            "GET",
+            "api/admin/stats/users",
+            200,
+            headers=headers
+        )
+        
+        users_empty = False
+        if users_success and users_data and "total_users" in users_data:
+            if users_data["total_users"] == 0:
+                print("✅ Verified: No users found - demo users have been cleaned up")
+                users_empty = True
+            else:
+                print(f"❌ Verification failed: Found {users_data['total_users']} users - demo users may not have been cleaned up")
+        
+        # Test posts cleanup via admin stats
+        posts_stats_success, posts_stats_data = self.run_test(
+            "Check Posts Cleanup via Admin Stats",
+            "GET",
+            "api/admin/stats/posts",
+            200,
+            headers=headers
+        )
+        
+        posts_stats_empty = False
+        if posts_stats_success and posts_stats_data and "total_posts" in posts_stats_data:
+            if posts_stats_data["total_posts"] == 0:
+                print("✅ Verified: No posts found in admin stats - demo posts have been cleaned up")
+                posts_stats_empty = True
+            else:
+                print(f"❌ Verification failed: Found {posts_stats_data['total_posts']} posts in admin stats - demo posts may not have been cleaned up")
+        
+        return posts_empty and users_empty and posts_stats_empty, {
+            "posts": posts_data,
+            "users_stats": users_data,
+            "posts_stats": posts_stats_data
+        }
 
 def test_auth_required_for_posts(self):
     """Test that authentication is required for creating posts"""
