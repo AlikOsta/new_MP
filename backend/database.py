@@ -225,10 +225,69 @@ class Database:
                 )
             """)
             
+            # Create performance indexes
+            await self.create_indexes(db)
+            
             await db.commit()
             
             # Initialize default data
             await self.init_default_data(db)
+    
+    async def create_indexes(self, db):
+        """Create indexes for better performance"""
+        indexes = [
+            # Posts table indexes (most critical for performance)
+            "CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(status)",
+            "CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC)",
+            "CREATE INDEX IF NOT EXISTS idx_posts_author_id ON posts(author_id)",
+            "CREATE INDEX IF NOT EXISTS idx_posts_type ON posts(post_type)",
+            "CREATE INDEX IF NOT EXISTS idx_posts_category ON posts(super_rubric_id)",
+            "CREATE INDEX IF NOT EXISTS idx_posts_city ON posts(city_id)",
+            "CREATE INDEX IF NOT EXISTS idx_posts_expires_at ON posts(expires_at)",
+            "CREATE INDEX IF NOT EXISTS idx_posts_status_type ON posts(status, post_type)",
+            "CREATE INDEX IF NOT EXISTS idx_posts_status_created ON posts(status, created_at DESC)",
+            
+            # Full-text search index for posts
+            "CREATE INDEX IF NOT EXISTS idx_posts_title ON posts(title)",
+            
+            # Users table indexes
+            "CREATE INDEX IF NOT EXISTS idx_users_telegram_id ON users(telegram_id)",
+            "CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at)",
+            
+            # Favorites table indexes
+            "CREATE INDEX IF NOT EXISTS idx_favorites_user_id ON favorites(user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_favorites_post_id ON favorites(post_id)",
+            "CREATE INDEX IF NOT EXISTS idx_favorites_created_at ON favorites(created_at)",
+            
+            # Post views table indexes
+            "CREATE INDEX IF NOT EXISTS idx_post_views_post_id ON post_views(post_id)",
+            "CREATE INDEX IF NOT EXISTS idx_post_views_user_id ON post_views(user_id)",
+            
+            # User packages table indexes
+            "CREATE INDEX IF NOT EXISTS idx_user_packages_user_id ON user_packages(user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_user_packages_status ON user_packages(payment_status)",
+            "CREATE INDEX IF NOT EXISTS idx_user_packages_created ON user_packages(created_at)",
+            
+            # User free posts table indexes
+            "CREATE INDEX IF NOT EXISTS idx_user_free_posts_user_id ON user_free_posts(user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_user_free_posts_next_free ON user_free_posts(next_free_post_at)",
+            
+            # Post boost schedule table indexes
+            "CREATE INDEX IF NOT EXISTS idx_post_boost_schedule_post_id ON post_boost_schedule(post_id)",
+            "CREATE INDEX IF NOT EXISTS idx_post_boost_schedule_next_boost ON post_boost_schedule(next_boost_at)",
+            "CREATE INDEX IF NOT EXISTS idx_post_boost_schedule_active ON post_boost_schedule(is_active)",
+            
+            # AI moderation log indexes
+            "CREATE INDEX IF NOT EXISTS idx_ai_moderation_log_post_id ON ai_moderation_log(post_id)",
+            "CREATE INDEX IF NOT EXISTS idx_ai_moderation_log_moderated_at ON ai_moderation_log(moderated_at)",
+        ]
+        
+        for index_sql in indexes:
+            try:
+                await db.execute(index_sql)
+            except Exception as e:
+                print(f"Warning: Could not create index: {e}")
+    
     
     async def init_default_data(self, db):
         """Initialize default categories, currencies, and cities"""

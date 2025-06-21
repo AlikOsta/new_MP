@@ -55,18 +55,32 @@ async def get_posts(
     search: str = None, 
     author_id: str = None,
     super_rubric_id: str = None,
-    city_id: str = None
+    city_id: str = None,
+    page: int = 1,
+    limit: int = 20
 ):
-    query = "SELECT * FROM posts WHERE 1=1"
+    # Validation and limits for Telegram Mini App
+    if limit > 50:
+        limit = 50  # Maximum 50 posts per request
+    if page < 1:
+        page = 1
+    
+    offset = (page - 1) * limit
+    
+    # Optimized query with selective fields
+    query = """SELECT id, title, description, post_type, price, currency_id, city_id, 
+                      super_rubric_id, author_id, status, has_photo, has_highlight, 
+                      has_boost, views_count, created_at, expires_at 
+               FROM posts WHERE 1=1"""
     params = []
     
-    # Если запрашиваются посты конкретного автора, показываем все статусы
+    # Efficient filtering with indexed columns first
     if author_id:
         query += " AND author_id = ?"
         params.append(author_id)
     else:
         query += " AND status = ?"
-        params.append(3)  # Для общего списка только активные
+        params.append(3)  # Only active posts for public list
     
     if post_type:
         query += " AND post_type = ?"
@@ -80,14 +94,24 @@ async def get_posts(
         query += " AND city_id = ?"
         params.append(city_id)
     
+    # Search is expensive, so it comes last
     if search:
         query += " AND (title LIKE ? OR description LIKE ?)"
         params.extend([f"%{search}%", f"%{search}%"])
     
-    query += " ORDER BY created_at DESC LIMIT 50"
+    # Order by created_at DESC (indexed) and add pagination
+    query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
+    params.extend([limit, offset])
     
     results = await db.fetchall(query, params)
-    return results
+    
+    # Return with metadata for pagination
+    return {
+        "posts": results,
+        "page": page,
+        "limit": limit,
+        "has_more": len(results) == limit
+    }
 
 @posts_router.post("/jobs")
 async def create_job_post(request: Request):
