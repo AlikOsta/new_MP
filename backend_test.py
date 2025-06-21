@@ -1816,19 +1816,32 @@ def main():
     tester.test_health_check()
     
     print("\n🔍 TESTING BASIC DATA ENDPOINTS")
-    tester.test_get_super_rubrics()  # categories
-    tester.test_get_cities()
-    tester.test_get_currencies()
+    tester.test_get_all_reference_data()  # unified endpoint for all reference data
+    tester.test_get_posts()  # posts with pagination
     tester.test_packages_endpoint()  # packages
+    
+    print("\n🔍 TESTING USER CREATION")
+    tester.test_create_user()
     
     print("\n🔍 TESTING AUTHENTICATION REQUIREMENTS")
     tester.test_auth_required_for_posts()
     
+    print("\n🔍 TESTING POST CREATION")
+    tester.test_create_job_post()
+    tester.test_create_service_post()
+    
+    print("\n🔍 TESTING FREE POST AVAILABILITY")
+    tester.test_check_free_post_availability()
+    
     print("\n🔍 TESTING ADMIN API WITH ENVIRONMENT VARIABLES")
-    tester.test_admin_login_with_env_credentials()
+    tester.test_admin_credentials_from_env()
+    tester.test_admin_get_settings()
     
     print("\n🔍 TESTING DATA CLEANUP")
     tester.test_data_cleanup()
+    
+    print("\n🔍 TESTING API PERFORMANCE")
+    tester.test_api_performance()
     
     # Print summary
     success = tester.print_summary()
