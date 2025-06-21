@@ -26,10 +26,10 @@ class TelegramMarketplaceAPITester:
         
         # Create a test user for our tests
         self.test_user = {
-            "telegram_id": 123456789,
-            "first_name": "Test",
-            "last_name": "User",
-            "username": "testuser",
+            "telegram_id": 987654321,
+            "first_name": "API",
+            "last_name": "Tester",
+            "username": "apitester",
             "language": "ru"
         }
 
