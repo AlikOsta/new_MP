@@ -197,6 +197,7 @@
   current_focus:
     - "Изучение существующей функциональности"
     - "Определение следующих задач для развития"
+    - "Система тарифов (Packages API)"
   stuck_tasks: []
   test_all: false
   test_priority: "sequential"
