@@ -4,7 +4,7 @@ import json
 
 def test_api_endpoints():
     """Test API endpoints with and without trailing slashes"""
-    base_url = "https://1c830749-8ced-48ca-93c2-576e2b3fd784.preview.emergentagent.com"
+    base_url = "https://9e1ae85a-4304-4d1a-85bf-92430e74a4cb.preview.emergentagent.com"
     
     # Test health endpoint
     print("\n🔍 Testing health endpoint...")
