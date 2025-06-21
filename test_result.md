@@ -151,6 +151,18 @@
           agent: "main"
           comment: "Полнофункциональный UI с навигацией, модальными окнами, формами создания постов, избранным."
 
+  - task: "Админ панель UI"
+    implemented: true
+    working: true
+    file: "admin/AdminApp.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Создана полная админ-панель: логин, дашборд, статистика, управление пользователями, постами, валютами, настройками. Роутинг интегрирован."
+
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
