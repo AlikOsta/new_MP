@@ -318,41 +318,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
-      {/* Auth Status Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-2">
-        <div className="container mx-auto max-w-md flex justify-between items-center">
-          <div className="text-sm text-gray-600">
-            {currentUser ? (
-              <span className="flex items-center">
-                <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                {currentUser.first_name} {currentUser.last_name}
-              </span>
-            ) : (
-              <span className="flex items-center text-orange-600">
-                <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
-                Гость (ограниченный доступ)
-              </span>
-            )}
-          </div>
-          {currentUser ? (
-            <button
-              onClick={handleLogout}
-              className="text-xs text-red-600 hover:text-red-800"
-            >
-              Выйти
-            </button>
-          ) : (
-            <button
-              onClick={handleTelegramAuth}
-              className="text-xs text-blue-600 hover:text-blue-800"
-            >
-              Войти через Telegram
-            </button>
-          )}
-        </div>
-      </div>
-      
+    <div className="min-h-screen bg-gray-50 pb-16">      
       <main className="container mx-auto px-4 py-6 max-w-md">
         {currentPage === 'home' && (
           <>
