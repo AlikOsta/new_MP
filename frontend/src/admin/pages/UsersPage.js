@@ -18,50 +18,9 @@ const UsersPage = () => {
     try {
       setLoading(true);
       
-      // Mock data since we don't have a users endpoint yet
-      const mockUsers = [
-        {
-          id: '1',
-          telegram_id: 123456789,
-          first_name: 'Александр',
-          last_name: 'Иванов',
-          username: 'alex_ivanov',
-          language: 'ru',
-          is_active: true,
-          created_at: '2024-01-15T10:00:00Z',
-          last_activity: '2024-01-20T14:30:00Z',
-          posts_count: 5,
-          theme: 'light'
-        },
-        {
-          id: '2',
-          telegram_id: 987654321,
-          first_name: 'Мария',
-          last_name: 'Петрова',
-          username: 'maria_p',
-          language: 'ru',
-          is_active: true,
-          created_at: '2024-01-10T08:15:00Z',
-          last_activity: '2024-01-21T16:45:00Z',
-          posts_count: 12,
-          theme: 'dark'
-        },
-        {
-          id: '3',
-          telegram_id: 456789123,
-          first_name: 'Дмитрий',
-          last_name: 'Сидоров',
-          username: 'dmitry_s',
-          language: 'ru',
-          is_active: false,
-          created_at: '2024-01-08T12:30:00Z',
-          last_activity: '2024-01-18T10:20:00Z',
-          posts_count: 2,
-          theme: 'light'
-        }
-      ];
-      
-      setUsers(mockUsers);
+      // For now, we don't have a users API endpoint, so show empty state
+      // In the future, this would be: const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/admin/users`);
+      setUsers([]);
     } catch (err) {
       setError('Ошибка загрузки пользователей');
       console.error('Users loading error:', err);
