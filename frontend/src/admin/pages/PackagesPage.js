@@ -69,61 +69,75 @@ const PackagesPage = () => {
       </div>
 
       {/* Packages Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {packages.map((pkg) => (
-          <div key={pkg.id} className="bg-white rounded-lg shadow border border-gray-200">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">{getPackageIcon(pkg.package_type)}</span>
-                  <h3 className="text-lg font-semibold text-gray-900">{pkg.name_ru}</h3>
+      {packages.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {packages.map((pkg) => (
+            <div key={pkg.id} className="bg-white rounded-lg shadow border border-gray-200">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-2xl">{getPackageIcon(pkg.package_type)}</span>
+                    <h3 className="text-lg font-semibold text-gray-900">{pkg.name_ru}</h3>
+                  </div>
+                  <span className={`admin-badge ${
+                    pkg.is_active ? 'admin-badge-success' : 'admin-badge-danger'
+                  }`}>
+                    {pkg.is_active ? 'Активен' : 'Неактивен'}
+                  </span>
                 </div>
-                <span className={`admin-badge ${
-                  pkg.is_active ? 'admin-badge-success' : 'admin-badge-danger'
-                }`}>
-                  {pkg.is_active ? 'Активен' : 'Неактивен'}
-                </span>
-              </div>
-              
-              <div className="mb-4">
-                <div className="text-3xl font-bold text-gray-900">
-                  {pkg.price === 0 ? 'Бесплатно' : `${pkg.price} ${pkg.currency_code}`}
+                
+                <div className="mb-4">
+                  <div className="text-3xl font-bold text-gray-900">
+                    {pkg.price === 0 ? 'Бесплатно' : `${pkg.price} ${pkg.currency_code}`}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    на {pkg.duration_days} дней
+                  </div>
                 </div>
-                <div className="text-sm text-gray-500">
-                  на {pkg.duration_days} дней
+                
+                <div className="mb-6">
+                  <h4 className="font-medium text-gray-900 mb-2">Возможности:</h4>
+                  <ul className="space-y-1">
+                    {pkg.features_ru.map((feature, index) => (
+                      <li key={index} className="text-sm text-gray-600 flex items-start">
+                        <span className="text-green-500 mr-2 mt-0.5">✓</span>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
-              
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-900 mb-2">Возможности:</h4>
-                <ul className="space-y-1">
-                  {pkg.features_ru.map((feature, index) => (
-                    <li key={index} className="text-sm text-gray-600 flex items-start">
-                      <span className="text-green-500 mr-2 mt-0.5">✓</span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              
-              <div className="flex space-x-2">
-                <button 
-                  onClick={() => alert(`Редактирование тарифа "${pkg.name_ru}" будет добавлено в следующем обновлении`)}
-                  className="admin-btn admin-btn-outline text-xs flex-1"
-                >
-                  Редактировать
-                </button>
-                <button 
-                  onClick={() => alert(`Удаление тарифа "${pkg.name_ru}" будет добавлено в следующем обновлении`)}
-                  className="admin-btn admin-btn-danger text-xs"
-                >
-                  Удалить
-                </button>
+                
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => alert(`Редактирование тарифа "${pkg.name_ru}" будет добавлено в следующем обновлении`)}
+                    className="admin-btn admin-btn-outline text-xs flex-1"
+                  >
+                    Редактировать
+                  </button>
+                  <button 
+                    onClick={() => alert(`Удаление тарифа "${pkg.name_ru}" будет добавлено в следующем обновлении`)}
+                    className="admin-btn admin-btn-danger text-xs"
+                  >
+                    Удалить
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow p-12 text-center">
+          <div className="text-4xl mb-4">💎</div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Нет тарифов</h3>
+          <p className="text-gray-500 mb-4">Создайте первый тариф для пользователей</p>
+          <button 
+            onClick={() => alert('Создание тарифов будет добавлено в следующем обновлении')}
+            className="admin-btn admin-btn-primary"
+          >
+            Добавить тариф
+          </button>
+        </div>
+      )}
       
       {/* Table View */}
       <div className="data-table">
