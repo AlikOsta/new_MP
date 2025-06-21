@@ -12,6 +12,9 @@ import TariffsModal from './components/TariffsModal';
 import PostDetails from './components/PostDetails';
 import FavoritesPage from './components/FavoritesPage';
 
+// Admin Panel
+import AdminApp from './admin/AdminApp';
+
 // Services
 import * as apiService from './services/api';
 
