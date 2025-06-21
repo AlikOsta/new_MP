@@ -95,7 +95,7 @@ function App() {
 
   const requireAuth = (action) => {
     if (!currentUser) {
-      alert('Это действие доступно только в Telegram Mini App');
+      console.log('This action is only available in Telegram Mini App');
       return false;
     }
     return true;
