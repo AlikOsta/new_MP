@@ -211,11 +211,16 @@ class Database:
                     id TEXT PRIMARY KEY,
                     show_view_counts BOOLEAN DEFAULT 1,
                     telegram_bot_token TEXT,
+                    telegram_payment_token TEXT,
+                    telegram_moderator_chat_id TEXT,
+                    telegram_moderator_username TEXT,
                     mistral_api_key TEXT,
                     app_name TEXT DEFAULT 'Telegram Marketplace',
                     app_description TEXT DEFAULT 'Платформа частных объявлений',
                     free_posts_per_week INTEGER DEFAULT 1,
                     moderation_enabled BOOLEAN DEFAULT 1,
+                    ai_moderation_enabled BOOLEAN DEFAULT 1,
+                    post_lifetime_days INTEGER DEFAULT 30,
                     updated_at TEXT
                 )
             """)
