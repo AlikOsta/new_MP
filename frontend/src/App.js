@@ -203,6 +203,8 @@ function App() {
   };
 
   const handleAddToFavorites = async (postId) => {
+    if (!requireAuth('add to favorites')) return;
+    
     try {
       if (favorites.includes(postId)) {
         await apiService.removeFromFavorites(currentUser.id, postId);
