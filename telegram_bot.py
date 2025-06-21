@@ -15,8 +15,9 @@ import httpx
 from dotenv import load_dotenv
 
 # Загружаем переменные окружения
-load_dotenv('.env')
 load_dotenv('backend/.env')
+load_dotenv('frontend/.env')
+load_dotenv('.env')
 
 # Конфигурация
 BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
