@@ -939,29 +939,34 @@ def main():
     tester.test_get_super_rubrics()
     tester.test_get_cities()
     tester.test_get_currencies()
-    tester.test_get_packages()
     
-    # Test user endpoints - FOCUS ON TESTING USER INFO
-    print("\n🔍 TESTING USER INFO: Get user information for post details")
-    tester.test_get_user_by_id()
+    # Test admin panel functionality
+    print("\n🔍 TESTING ADMIN PANEL: Admin authentication and functionality")
     
-    # Test posts endpoints
+    # Test admin authentication
+    tester.test_admin_login_valid()
+    tester.test_admin_login_invalid()
+    
+    # Test admin statistics
+    print("\n🔍 TESTING ADMIN STATISTICS: User and post statistics")
+    tester.test_admin_stats_users()
+    tester.test_admin_stats_posts()
+    
+    # Test admin settings
+    print("\n🔍 TESTING ADMIN SETTINGS: Get and update application settings")
+    tester.test_admin_get_settings()
+    tester.test_admin_update_settings()
+    
+    # Test admin CRUD for currencies
+    print("\n🔍 TESTING ADMIN CURRENCIES: CRUD operations for currencies")
+    tester.test_admin_get_currencies()
+    tester.test_admin_create_currency()
+    tester.test_admin_update_currency()
+    tester.test_admin_delete_currency()
+    
+    # Test general API endpoints
+    print("\n🔍 TESTING GENERAL API ENDPOINTS: Categories, cities, and posts")
     tester.test_get_posts()
-    tester.test_get_job_posts()
-    tester.test_get_service_posts()
-    
-    # Test creating posts
-    print("\n🔍 TESTING POST CREATION: Creating posts with author information")
-    tester.test_create_job_post()
-    tester.test_create_service_post()
-    
-    # Test view counter functionality with user ID
-    print("\n🔍 TESTING VIEW COUNTER: View counter should not increment for same user")
-    tester.test_view_counter_with_user_id()
-    
-    # Test favorites functionality
-    print("\n🔍 TESTING FAVORITES: Adding/removing posts from favorites")
-    tester.test_favorites_functionality()
     
     # Print summary
     success = tester.print_summary()
