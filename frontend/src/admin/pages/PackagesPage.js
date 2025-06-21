@@ -143,10 +143,16 @@ const PackagesPage = () => {
               </div>
               
               <div className="flex space-x-2">
-                <button className="admin-btn admin-btn-outline text-xs flex-1">
+                <button 
+                  onClick={() => alert(`Редактирование тарифа "${pkg.name_ru}" будет добавлено в следующем обновлении`)}
+                  className="admin-btn admin-btn-outline text-xs flex-1"
+                >
                   Редактировать
                 </button>
-                <button className="admin-btn admin-btn-danger text-xs">
+                <button 
+                  onClick={() => alert(`Удаление тарифа "${pkg.name_ru}" будет добавлено в следующем обновлении`)}
+                  className="admin-btn admin-btn-danger text-xs"
+                >
                   Удалить
                 </button>
               </div>
