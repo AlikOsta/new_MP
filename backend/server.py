@@ -33,18 +33,45 @@ categories_router = APIRouter(prefix="/api/categories", tags=["categories"])
 
 @categories_router.get("/super-rubrics")
 async def get_super_rubrics():
-    results = await db.fetchall("SELECT * FROM super_rubrics WHERE is_active = 1")
+    results = await db.fetchall("SELECT id, name_ru, name_ua, icon FROM super_rubrics WHERE is_active = 1")
     return results
 
 @categories_router.get("/cities")
 async def get_cities():
-    results = await db.fetchall("SELECT * FROM cities WHERE is_active = 1")
+    results = await db.fetchall("SELECT id, name_ru, name_ua FROM cities WHERE is_active = 1")
     return results
 
 @categories_router.get("/currencies")
 async def get_currencies():
-    results = await db.fetchall("SELECT * FROM currencies WHERE is_active = 1")
+    results = await db.fetchall("SELECT id, code, name_ru, name_ua, symbol FROM currencies WHERE is_active = 1")
     return results
+
+@categories_router.get("/all")
+async def get_all_reference_data():
+    """Get all reference data in one request for Telegram Mini App optimization"""
+    super_rubrics = await db.fetchall("SELECT id, name_ru, name_ua, icon FROM super_rubrics WHERE is_active = 1")
+    cities = await db.fetchall("SELECT id, name_ru, name_ua FROM cities WHERE is_active = 1")
+    currencies = await db.fetchall("SELECT id, code, name_ru, name_ua, symbol FROM currencies WHERE is_active = 1")
+    packages = await db.fetchall("""
+        SELECT id, name_ru, name_ua, package_type, price, currency_id, 
+               duration_days, post_lifetime_days, features_ru, features_ua,
+               has_photo, has_highlight, has_boost, sort_order
+        FROM packages WHERE is_active = 1 ORDER BY sort_order ASC
+    """)
+    
+    # Parse features from pipe-separated strings
+    for package in packages:
+        if package.get("features_ru"):
+            package["features_ru"] = package["features_ru"].split("|")
+        if package.get("features_ua"):
+            package["features_ua"] = package["features_ua"].split("|")
+    
+    return {
+        "categories": super_rubrics,
+        "cities": cities,
+        "currencies": currencies,
+        "packages": packages
+    }
 
 # Posts router
 posts_router = APIRouter(prefix="/api/posts", tags=["posts"])
