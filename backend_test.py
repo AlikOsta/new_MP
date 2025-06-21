@@ -1228,6 +1228,36 @@ class TelegramMarketplaceAPITester:
                 success = False
         
         return success, data
+        
+    def test_packages_endpoint(self):
+        """Test the packages endpoint"""
+        print("\n--- Testing Packages Endpoint ---")
+        
+        success, data = self.run_test(
+            "Get Packages",
+            "GET",
+            "api/packages/"
+        )
+        
+        if success and isinstance(data, list):
+            print(f"✅ Verified: Retrieved {len(data)} packages")
+            
+            # Check for expected package fields
+            if len(data) > 0:
+                package = data[0]
+                expected_fields = ["name_ru", "price", "features_ru", "has_photo", "has_highlight", "has_boost"]
+                missing_fields = [field for field in expected_fields if field not in package]
+                
+                if not missing_fields:
+                    print(f"✅ Verified: Package contains all expected fields: {', '.join(expected_fields)}")
+                else:
+                    print(f"❌ Verification failed: Package missing fields: {', '.join(missing_fields)}")
+                    success = False
+        else:
+            print("❌ Verification failed: Packages response is not a list or request failed")
+            success = False
+        
+        return success, data
 
     def print_summary(self):
         """Print test summary"""
