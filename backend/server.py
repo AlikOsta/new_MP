@@ -791,7 +791,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
+# Import function from packages_router  
+async def check_free_post_availability(user_id: str):
+    """Check if user can create free post"""
+    now = datetime.now()
+    
+    # Check user's last free post
+    last_free = await db.fetchone(
+        "SELECT * FROM user_free_posts WHERE user_id = ? ORDER BY created_at DESC LIMIT 1",
+        [user_id]
+    )
+    
+    if not last_free:
+        return {"can_create_free": True, "next_free_at": None}
+    
+    next_free_at = datetime.fromisoformat(last_free["next_free_post_at"])
+    can_create = now >= next_free_at
+    
+    return {
+        "can_create_free": can_create,
+        "next_free_at": last_free["next_free_post_at"] if not can_create else None
+    }
 app.include_router(categories_router)
 app.include_router(posts_router)
 app.include_router(admin_router)
