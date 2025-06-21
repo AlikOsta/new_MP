@@ -91,23 +91,25 @@ async def create_job_post(request: Request):
     data = await request.json()
     
     # Add additional fields
-    data["post_type"] = "job"
-    data["status"] = 3  # Active status (вместо 1 - Draft)
-    data["views_count"] = 0
-    data["is_premium"] = False
-    data["created_at"] = datetime.now().isoformat()
-    data["updated_at"] = datetime.now().isoformat()
+    post_data = {
+        "id": str(uuid.uuid4()),
+        "title": data.get("title"),
+        "description": data.get("description"),
+        "post_type": "job",
+        "price": data.get("price"),
+        "currency_id": data.get("currency_id"),
+        "city_id": data.get("city_id"),
+        "super_rubric_id": data.get("super_rubric_id"),
+        "author_id": request.headers.get("X-Author-ID", "demo-user"),
+        "status": 3,  # Active status
+        "views_count": 0,
+        "is_premium": False,
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat()
+    }
     
-    # Get author_id from header
-    author_id = request.headers.get("X-Author-ID", "demo-user")
-    data["author_id"] = author_id
-    
-    result = await db.posts.insert_one(data)
-    created_post = await db.posts.find_one({"_id": result.inserted_id})
-    created_post["_id"] = str(created_post["_id"])
-    created_post["id"] = created_post["_id"]
-    
-    return created_post
+    await db.insert("posts", post_data)
+    return post_data
 
 @posts_router.post("/services")
 async def create_service_post(request: Request):
@@ -115,23 +117,25 @@ async def create_service_post(request: Request):
     data = await request.json()
     
     # Add additional fields
-    data["post_type"] = "service"
-    data["status"] = 3  # Active status (вместо 1 - Draft)
-    data["views_count"] = 0
-    data["is_premium"] = False
-    data["created_at"] = datetime.now().isoformat()
-    data["updated_at"] = datetime.now().isoformat()
+    post_data = {
+        "id": str(uuid.uuid4()),
+        "title": data.get("title"),
+        "description": data.get("description"),
+        "post_type": "service",
+        "price": data.get("price"),
+        "currency_id": data.get("currency_id"),
+        "city_id": data.get("city_id"),
+        "super_rubric_id": data.get("super_rubric_id"),
+        "author_id": request.headers.get("X-Author-ID", "demo-user"),
+        "status": 3,  # Active status
+        "views_count": 0,
+        "is_premium": False,
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat()
+    }
     
-    # Get author_id from header
-    author_id = request.headers.get("X-Author-ID", "demo-user")
-    data["author_id"] = author_id
-    
-    result = await db.posts.insert_one(data)
-    created_post = await db.posts.find_one({"_id": result.inserted_id})
-    created_post["_id"] = str(created_post["_id"])
-    created_post["id"] = created_post["_id"]
-    
-    return created_post
+    await db.insert("posts", post_data)
+    return post_data
 
 @posts_router.put("/{post_id}/status")
 async def update_post_status(post_id: str, request: Request):
