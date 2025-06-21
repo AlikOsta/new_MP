@@ -710,6 +710,48 @@ async def admin_delete_package(package_id: str):
     
     return {"success": True, "message": "Package deleted"}
 
+# Background tasks management endpoints
+@admin_router.post("/tasks/expire-posts")
+async def admin_expire_posts():
+    """Manually expire old posts"""
+    result = await manual_expire_posts()
+    return result
+
+@admin_router.post("/tasks/boost-posts") 
+async def admin_boost_posts():
+    """Manually boost posts"""
+    result = await manual_boost_posts()
+    return result
+
+@admin_router.get("/tasks/status")
+async def admin_tasks_status():
+    """Get background tasks status"""
+    from background_tasks import background_tasks
+    
+    # Get some statistics
+    now = datetime.now().isoformat()
+    
+    # Posts ready to expire
+    expire_ready = await db.fetchall(
+        "SELECT COUNT(*) as count FROM posts WHERE expires_at < ? AND status = 4",
+        [now]
+    )
+    
+    # Posts ready to boost
+    boost_ready = await db.fetchall(
+        """SELECT COUNT(*) as count FROM post_boost_schedule pbs
+           JOIN posts p ON pbs.post_id = p.id
+           WHERE pbs.next_boost_at <= ? AND pbs.is_active = 1 AND p.status = 4""",
+        [now]
+    )
+    
+    return {
+        "background_tasks_running": background_tasks.is_running,
+        "posts_ready_to_expire": expire_ready[0]["count"] if expire_ready else 0,
+        "posts_ready_to_boost": boost_ready[0]["count"] if boost_ready else 0,
+        "current_time": now
+    }
+
 # Packages router
 packages_router = APIRouter(prefix="/api/packages", tags=["packages"])
 
