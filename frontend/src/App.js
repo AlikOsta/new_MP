@@ -158,7 +158,7 @@ function App() {
         const freePostCheck = await apiService.checkFreePostAvailability(currentUser.id);
         if (!freePostCheck.can_create_free) {
           const nextDate = new Date(freePostCheck.next_free_at).toLocaleDateString('ru-RU');
-          alert(`Бесплатный пост можно будет создать ${nextDate}`);
+          console.log(`Free post will be available on ${nextDate}`);
           return;
         }
       }
