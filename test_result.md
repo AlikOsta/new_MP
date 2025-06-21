@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-## user_problem_statement: "Исследование и продолжение работы над существующим проектом Telegram Marketplace - платформа частных объявлений"
+## user_problem_statement: "Подготовка проекта к продакшену: удаление демо-контента, фиктивных пользователей, и системы авторизации"
 
 ## backend:
   - task: "FastAPI сервер с полным API"
