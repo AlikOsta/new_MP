@@ -159,12 +159,12 @@ class ApiService {
   // Packages - using real API now
   async getPackages() {
     return this.request('/api/packages/');
-  },
+  }
 
   // Check if user can create free post
   async checkFreePostAvailability(userId) {
     return this.request(`/api/packages/check-free-post/${userId}`);
-  },
+  }
 
   // Purchase package (initiate payment)
   async purchasePackage(userId, packageId) {
@@ -172,7 +172,7 @@ class ApiService {
       user_id: userId,
       package_id: packageId
     });
-  },
+  }
 
   async createPayment(paymentData, userId) {
     return this.request('/api/packages/payments', {
