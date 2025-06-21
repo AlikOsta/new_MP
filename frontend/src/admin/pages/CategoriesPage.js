@@ -4,165 +4,10 @@ const CategoriesPage = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [formData, setFormData] = useState({
-    name_ru: '',
-    name_ua: '',
-    icon: '',
-    is_active: true
-  });
 
   useEffect(() => {
     loadCategories();
   }, []);
-
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    try {
-      // TODO: Add API endpoint for creating categories
-      alert('Создание категорий пока не реализовано в API');
-      setShowCreateModal(false);
-      setFormData({ name_ru: '', name_ua: '', icon: '', is_active: true });
-    } catch (err) {
-      console.error('Error creating category:', err);
-    }
-  };
-
-  const handleEdit = async (e) => {
-    e.preventDefault();
-    try {
-      // TODO: Add API endpoint for updating categories
-      alert('Редактирование категорий пока не реализовано в API');
-      setShowEditModal(false);
-      setSelectedCategory(null);
-      setFormData({ name_ru: '', name_ua: '', icon: '', is_active: true });
-    } catch (err) {
-      console.error('Error updating category:', err);
-    }
-  };
-
-  const handleDelete = async (categoryId) => {
-    if (!window.confirm('Вы уверены, что хотите удалить эту категорию?')) {
-      return;
-    }
-
-    try {
-      // TODO: Add API endpoint for deleting categories
-      alert('Удаление категорий пока не реализовано в API');
-    } catch (err) {
-      console.error('Error deleting category:', err);
-    }
-  };
-
-  const openEditModal = (category) => {
-    setSelectedCategory(category);
-    setFormData({
-      name_ru: category.name_ru,
-      name_ua: category.name_ua,
-      icon: category.icon,
-      is_active: category.is_active
-    });
-    setShowEditModal(true);
-  };
-
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    try {
-      // TODO: Add API endpoint for creating categories
-      alert('Создание категорий пока не реализовано в API');
-      setShowCreateModal(false);
-      setFormData({ name_ru: '', name_ua: '', icon: '', is_active: true });
-    } catch (err) {
-      console.error('Error creating category:', err);
-    }
-  };
-
-  const handleEdit = async (e) => {
-    e.preventDefault();
-    try {
-      // TODO: Add API endpoint for updating categories
-      alert('Редактирование категорий пока не реализовано в API');
-      setShowEditModal(false);
-      setSelectedCategory(null);
-      setFormData({ name_ru: '', name_ua: '', icon: '', is_active: true });
-    } catch (err) {
-      console.error('Error updating category:', err);
-    }
-  };
-
-  const handleDelete = async (categoryId) => {
-    if (!window.confirm('Вы уверены, что хотите удалить эту категорию?')) {
-      return;
-    }
-
-    try {
-      // TODO: Add API endpoint for deleting categories
-      alert('Удаление категорий пока не реализовано в API');
-    } catch (err) {
-      console.error('Error deleting category:', err);
-    }
-  };
-
-  const openEditModal = (category) => {
-    setSelectedCategory(category);
-    setFormData({
-      name_ru: category.name_ru,
-      name_ua: category.name_ua,
-      icon: category.icon,
-      is_active: category.is_active
-    });
-    setShowEditModal(true);
-  };
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    try {
-      // TODO: Add API endpoint for creating categories
-      alert('Создание категорий пока не реализовано в API');
-      setShowCreateModal(false);
-      setFormData({ name_ru: '', name_ua: '', icon: '', is_active: true });
-    } catch (err) {
-      console.error('Error creating category:', err);
-    }
-  };
-
-  const handleEdit = async (e) => {
-    e.preventDefault();
-    try {
-      // TODO: Add API endpoint for updating categories
-      alert('Редактирование категорий пока не реализовано в API');
-      setShowEditModal(false);
-      setSelectedCategory(null);
-      setFormData({ name_ru: '', name_ua: '', icon: '', is_active: true });
-    } catch (err) {
-      console.error('Error updating category:', err);
-    }
-  };
-
-  const handleDelete = async (categoryId) => {
-    if (!window.confirm('Вы уверены, что хотите удалить эту категорию?')) {
-      return;
-    }
-
-    try {
-      // TODO: Add API endpoint for deleting categories
-      alert('Удаление категорий пока не реализовано в API');
-    } catch (err) {
-      console.error('Error deleting category:', err);
-    }
-  };
-
-  const openEditModal = (category) => {
-    setSelectedCategory(category);
-    setFormData({
-      name_ru: category.name_ru,
-      name_ua: category.name_ua,
-      icon: category.icon,
-      is_active: category.is_active
-    });
-    setShowEditModal(true);
-  };
 
   const loadCategories = async () => {
     try {
@@ -176,6 +21,18 @@ const CategoriesPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCreate = () => {
+    alert('Создание категорий будет добавлено в следующем обновлении');
+  };
+
+  const handleEdit = (category) => {
+    alert(`Редактирование категории "${category.name_ru}" будет добавлено в следующем обновлении`);
+  };
+
+  const handleDelete = (category) => {
+    alert(`Удаление категории "${category.name_ru}" будет добавлено в следующем обновлении`);
   };
 
   if (loading) {
@@ -206,7 +63,7 @@ const CategoriesPage = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Управление категориями</h1>
         <button 
-          onClick={() => alert('Создание категорий будет добавлено в следующем обновлении')}
+          onClick={handleCreate}
           className="admin-btn admin-btn-primary"
         >
           Добавить категорию
@@ -245,10 +102,16 @@ const CategoriesPage = () => {
                 </td>
                 <td>
                   <div className="flex space-x-2">
-                    <button className="admin-btn admin-btn-outline text-xs">
+                    <button 
+                      onClick={() => handleEdit(category)}
+                      className="admin-btn admin-btn-outline text-xs"
+                    >
                       Редактировать
                     </button>
-                    <button className="admin-btn admin-btn-danger text-xs">
+                    <button 
+                      onClick={() => handleDelete(category)}
+                      className="admin-btn admin-btn-danger text-xs"
+                    >
                       Удалить
                     </button>
                   </div>
@@ -257,6 +120,19 @@ const CategoriesPage = () => {
             ))}
           </tbody>
         </table>
+        
+        {categories.length === 0 && (
+          <div className="p-8 text-center text-gray-500">
+            <div className="text-4xl mb-2">📂</div>
+            <p>Категории не найдены</p>
+            <button
+              onClick={handleCreate}
+              className="mt-2 admin-btn admin-btn-primary"
+            >
+              Добавить первую категорию
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
