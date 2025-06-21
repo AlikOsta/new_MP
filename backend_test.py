@@ -33,7 +33,7 @@ class TelegramMarketplaceAPITester:
             "language": "ru"
         }
 
-    def run_test(self, name, method, endpoint, expected_status=200, data=None, params=None, headers=None):
+    def run_test(self, name, method, endpoint, expected_status=200, data=None, params=None, headers=None, measure_performance=False):
         """Run a single API test"""
         url = f"{self.base_url}/{endpoint}"
         if headers is None:
@@ -43,6 +43,8 @@ class TelegramMarketplaceAPITester:
         print(f"\n🔍 Testing {name}...")
         
         try:
+            start_time = time.time()
+            
             if method == 'GET':
                 response = requests.get(url, headers=headers, params=params)
             elif method == 'POST':
@@ -51,6 +53,17 @@ class TelegramMarketplaceAPITester:
                 response = requests.put(url, json=data, headers=headers)
             elif method == 'DELETE':
                 response = requests.delete(url, json=data, headers=headers)
+
+            end_time = time.time()
+            response_time = (end_time - start_time) * 1000  # Convert to milliseconds
+            
+            if measure_performance:
+                self.performance_metrics[name] = {
+                    "response_time_ms": response_time,
+                    "endpoint": endpoint,
+                    "method": method
+                }
+                print(f"⏱️ Response time: {response_time:.2f} ms")
 
             success = response.status_code == expected_status
             
@@ -63,7 +76,8 @@ class TelegramMarketplaceAPITester:
                     self.test_results[name] = {
                         "status": "passed",
                         "response_code": response.status_code,
-                        "data": response_data
+                        "data": response_data,
+                        "response_time_ms": response_time if measure_performance else None
                     }
                     return success, response_data
                 except:
@@ -71,7 +85,8 @@ class TelegramMarketplaceAPITester:
                     self.test_results[name] = {
                         "status": "passed",
                         "response_code": response.status_code,
-                        "data": response.text[:100]
+                        "data": response.text[:100],
+                        "response_time_ms": response_time if measure_performance else None
                     }
                     return success, response.text
             else:
@@ -82,14 +97,16 @@ class TelegramMarketplaceAPITester:
                     self.test_results[name] = {
                         "status": "failed",
                         "response_code": response.status_code,
-                        "error": error_data
+                        "error": error_data,
+                        "response_time_ms": response_time if measure_performance else None
                     }
                 except:
                     print(f"Error response: {response.text}")
                     self.test_results[name] = {
                         "status": "failed",
                         "response_code": response.status_code,
-                        "error": response.text
+                        "error": response.text,
+                        "response_time_ms": response_time if measure_performance else None
                     }
                 return success, None
 
