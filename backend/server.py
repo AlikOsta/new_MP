@@ -409,9 +409,10 @@ async def get_post_details(post_id: str, user_id: str = None):
 admin_router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 # Simple admin authentication (in production use proper JWT)
+# TODO: Replace with proper authentication system
 ADMIN_CREDENTIALS = {
-    "username": "Admin",
-    "password": "Admin"  # In production, use hashed passwords
+    "username": os.environ.get("ADMIN_USERNAME", "admin"),
+    "password": os.environ.get("ADMIN_PASSWORD", "admin123")  # In production, use hashed passwords
 }
 
 @admin_router.post("/login")
