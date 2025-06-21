@@ -18,6 +18,9 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # Database import
 from database import db
 
+# AI Moderation import
+from ai_moderation import init_moderation_services, moderate_post_content, mistral_moderator, telegram_notifier
+
 # Import API routers with simple approach
 from fastapi import APIRouter
 
