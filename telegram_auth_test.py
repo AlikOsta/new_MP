@@ -350,7 +350,7 @@ class TelegramAuthTester:
         
         # Test protected endpoints
         self.test_protected_endpoint_without_token()
-        self.test_protected_endpoint_with_invalid_token()
+        self.test_protected_endpoint_with_jwt_token()
         
         # Print summary
         print(f"\n=== Test Summary ===")
