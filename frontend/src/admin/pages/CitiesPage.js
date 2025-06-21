@@ -50,7 +50,10 @@ const CitiesPage = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Управление городами</h1>
-        <button className="admin-btn admin-btn-primary">
+        <button 
+          onClick={() => alert('Создание городов будет добавлено в следующем обновлении')}
+          className="admin-btn admin-btn-primary"
+        >
           Добавить город
         </button>
       </div>
