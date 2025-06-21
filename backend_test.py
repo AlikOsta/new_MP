@@ -1660,7 +1660,7 @@ def main():
     tester.test_api_performance()
     
     # Print summary
-    tester.print_summary()
+    return tester.print_summary()
 
 if __name__ == "__main__":
     main()
