@@ -464,7 +464,87 @@ async def admin_delete_currency(currency_id: str):
     
     return {"success": True, "message": "Currency deleted"}
 
-# Users router
+# Packages router
+packages_router = APIRouter(prefix="/api/packages", tags=["packages"])
+
+@packages_router.get("/")
+async def get_active_packages():
+    """Get all active packages for users"""
+    results = await db.fetchall(
+        "SELECT * FROM packages WHERE is_active = 1 ORDER BY sort_order ASC"
+    )
+    
+    # Parse features from JSON strings
+    for package in results:
+        if package.get("features_ru"):
+            package["features_ru"] = package["features_ru"].split("|")
+        if package.get("features_ua"):
+            package["features_ua"] = package["features_ua"].split("|")
+    
+    return results
+
+@packages_router.get("/check-free-post/{user_id}")
+async def check_free_post_availability(user_id: str):
+    """Check if user can create free post"""
+    now = datetime.now()
+    
+    # Check user's last free post
+    last_free = await db.fetchone(
+        "SELECT * FROM user_free_posts WHERE user_id = ? ORDER BY created_at DESC LIMIT 1",
+        [user_id]
+    )
+    
+    if not last_free:
+        return {"can_create_free": True, "next_free_at": None}
+    
+    next_free_at = datetime.fromisoformat(last_free["next_free_post_at"])
+    can_create = now >= next_free_at
+    
+    return {
+        "can_create_free": can_create,
+        "next_free_at": last_free["next_free_post_at"] if not can_create else None
+    }
+
+@packages_router.post("/purchase")
+async def purchase_package(request: Request):
+    """Purchase a package (initiate Telegram payment)"""
+    data = await request.json()
+    user_id = data.get("user_id")
+    package_id = data.get("package_id")
+    
+    if not user_id or not package_id:
+        return {"error": "user_id and package_id are required"}
+    
+    # Get package details
+    package = await db.fetchone("SELECT * FROM packages WHERE id = ?", [package_id])
+    if not package:
+        return {"error": "Package not found"}
+    
+    if package["price"] == 0:
+        return {"error": "Free package cannot be purchased"}
+    
+    # Create pending purchase record
+    purchase_data = {
+        "user_id": user_id,
+        "package_id": package_id,
+        "purchased_at": datetime.now().isoformat(),
+        "payment_status": "pending",
+        "amount": package["price"],
+        "currency_code": "RUB",  # Will get from currency table
+        "created_at": datetime.now().isoformat()
+    }
+    
+    purchase_id = await db.insert("user_packages", purchase_data)
+    
+    # Here would be Telegram Payment API integration
+    # For now, return payment info
+    return {
+        "purchase_id": purchase_id,
+        "amount": package["price"],
+        "currency": "RUB",
+        "description": f"Тариф: {package['name_ru']}",
+        "telegram_payment_url": f"tg://payment?purchase_id={purchase_id}"
+    }
 users_router = APIRouter(prefix="/api/users", tags=["users"])
 
 @users_router.post("/")
