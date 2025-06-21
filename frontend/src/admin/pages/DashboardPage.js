@@ -96,11 +96,11 @@ const DashboardPage = () => {
             <span className="text-blue-600">👥</span>
           </div>
           <div className="stat-card-value text-blue-600">
-            {stats.users.total.toLocaleString()}
+            {(stats.users.total || 0).toLocaleString()}
           </div>
           <div className="stat-card-label">Всего пользователей</div>
           <div className="stat-card-change positive">
-            +{stats.users.new_7d} за неделю
+            +{stats.users.new_7d || 0} за неделю
           </div>
         </div>
 
@@ -110,11 +110,11 @@ const DashboardPage = () => {
             <span className="text-green-600">📝</span>
           </div>
           <div className="stat-card-value text-green-600">
-            {stats.posts.active.toLocaleString()}
+            {(stats.posts.active || 0).toLocaleString()}
           </div>
           <div className="stat-card-label">Активных объявлений</div>
           <div className="stat-card-change positive">
-            +{stats.posts.new_7d} за неделю
+            +{stats.posts.new_7d || 0} за неделю
           </div>
         </div>
 
@@ -124,11 +124,11 @@ const DashboardPage = () => {
             <span className="text-purple-600">📊</span>
           </div>
           <div className="stat-card-value text-purple-600">
-            {stats.posts.total.toLocaleString()}
+            {(stats.posts.total || 0).toLocaleString()}
           </div>
           <div className="stat-card-label">Всего объявлений</div>
           <div className="stat-card-change positive">
-            +{stats.posts.new_30d} за месяц
+            +{stats.posts.new_30d || 0} за месяц
           </div>
         </div>
 
@@ -138,7 +138,7 @@ const DashboardPage = () => {
             <span className="text-orange-600">🆕</span>
           </div>
           <div className="stat-card-value text-orange-600">
-            {stats.users.new_30d.toLocaleString()}
+            {(stats.users.new_30d || 0).toLocaleString()}
           </div>
           <div className="stat-card-label">Новых пользователей за месяц</div>
           <div className="stat-card-change positive">
