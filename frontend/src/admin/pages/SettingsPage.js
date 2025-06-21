@@ -239,6 +239,45 @@ const SettingsPage = () => {
                   </div>
                   
                   <div className="p-4 border border-gray-200 rounded-lg">
+                    <h4 className="font-medium text-gray-900 mb-2">Telegram Payment</h4>
+                    <p className="text-sm text-gray-500 mb-3">Токен для интеграции с Telegram Payment</p>
+                    <input
+                      type="password"
+                      value={settings.telegram_payment_token}
+                      onChange={(e) => handleInputChange('telegram_payment_token', e.target.value)}
+                      className="admin-form-input"
+                      placeholder="1744374395:TEST:XXXXXXXXXXXXXXXXXXXXXXX"
+                    />
+                  </div>
+                  
+                  <div className="p-4 border border-gray-200 rounded-lg">
+                    <h4 className="font-medium text-gray-900 mb-2">Модератор Telegram</h4>
+                    <p className="text-sm text-gray-500 mb-3">Настройки для уведомлений модератора</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="admin-form-label">Chat ID модератора</label>
+                        <input
+                          type="text"
+                          value={settings.telegram_moderator_chat_id}
+                          onChange={(e) => handleInputChange('telegram_moderator_chat_id', e.target.value)}
+                          className="admin-form-input"
+                          placeholder="123456789"
+                        />
+                      </div>
+                      <div>
+                        <label className="admin-form-label">Username модератора</label>
+                        <input
+                          type="text"
+                          value={settings.telegram_moderator_username}
+                          onChange={(e) => handleInputChange('telegram_moderator_username', e.target.value)}
+                          className="admin-form-input"
+                          placeholder="moderator_username"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 border border-gray-200 rounded-lg">
                     <h4 className="font-medium text-gray-900 mb-2">Mistral AI</h4>
                     <p className="text-sm text-gray-500 mb-3">API ключ для интеграции с Mistral AI</p>
                     <input
