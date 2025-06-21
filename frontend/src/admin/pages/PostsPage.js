@@ -260,11 +260,35 @@ const PostsPage = () => {
                       </>
                     )}
                     {post.status === 3 && (
+                      <>
+                        <button
+                          onClick={() => handlePostStatusChange(post.id, 4)}
+                          className="admin-btn admin-btn-danger text-xs"
+                        >
+                          Заблокировать
+                        </button>
+                        <button
+                          onClick={() => handlePostStatusChange(post.id, 5)}
+                          className="admin-btn admin-btn-secondary text-xs"
+                        >
+                          В архив
+                        </button>
+                      </>
+                    )}
+                    {post.status === 4 && (
                       <button
-                        onClick={() => handlePostStatusChange(post.id, 4)}
-                        className="admin-btn admin-btn-danger text-xs"
+                        onClick={() => handlePostStatusChange(post.id, 3)}
+                        className="admin-btn admin-btn-success text-xs"
                       >
-                        Заблокировать
+                        Разблокировать
+                      </button>
+                    )}
+                    {post.status === 5 && (
+                      <button
+                        onClick={() => handlePostStatusChange(post.id, 3)}
+                        className="admin-btn admin-btn-success text-xs"
+                      >
+                        Из архива
                       </button>
                     )}
                     <button
