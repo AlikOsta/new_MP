@@ -108,7 +108,7 @@ async def create_job_post(request: Request):
         "updated_at": datetime.now().isoformat()
     }
     
-    await db.insert("posts", post_data)
+    await db.posts.insert_one(post_data)
     return post_data
 
 @posts_router.post("/services")
@@ -134,7 +134,7 @@ async def create_service_post(request: Request):
         "updated_at": datetime.now().isoformat()
     }
     
-    await db.insert("posts", post_data)
+    await db.posts.insert_one(post_data)
     return post_data
 
 @posts_router.put("/{post_id}/status")
