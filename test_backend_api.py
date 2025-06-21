@@ -180,19 +180,26 @@ class BackendAPITester:
         print("\n🔍 Testing error handling...")
         
         # Test with invalid endpoint
-        success, data = self.run_test("404 Error Handling", "GET", "api/nonexistent", 404)
+        success, _ = self.run_test("404 Error Handling", "GET", "api/nonexistent", 404)
         
+        # For this test, we expect a 404 response which is considered a "success" in our test framework
+        # because we specified 404 as the expected status code
         if success:
-            print("❌ Expected test to fail with 404")
-            return False, None
+            print("✅ 404 error handled correctly for non-existent endpoint")
+            
+            # Make another request to check error response format
+            response = requests.get(f"{self.base_url}/api/nonexistent")
+            try:
+                error_data = response.json()
+                if "detail" in error_data:
+                    print(f"✅ Error response format is correct: {error_data}")
+                    return True, error_data
+                else:
+                    print(f"❌ Error response format is incorrect: {error_data}")
+            except:
+                print(f"❌ Error response is not valid JSON: {response.text}")
         
-        # Check if error response has correct format
-        if isinstance(data, dict) and "error" in data:
-            print(f"✅ Error response format is correct: {data}")
-            return True, data
-        else:
-            print(f"❌ Error response format is incorrect: {data}")
-            return False, data
+        return False, None
 
 def main():
     # Get the backend URL from frontend/.env
