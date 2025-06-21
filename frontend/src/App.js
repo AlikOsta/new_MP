@@ -168,11 +168,11 @@ function App() {
       if (selectedPackage && selectedPackage.price > 0) {
         const paymentResult = await apiService.purchasePackage(currentUser.id, postData.package_id);
         
-        // В реальном приложении здесь бы открылся Telegram Payment
-        alert(`Инициирована оплата ${selectedPackage.price} ₽. В реальном приложении откроется Telegram Payment.`);
-        
-        // Пока что для демо продолжаем создание поста
-        console.log('Payment initiated:', paymentResult);
+        // Инициируем Telegram Payment
+        if (window.Telegram?.WebApp) {
+          // TODO: Интегрировать с Telegram Payment API
+          console.log('Payment initiated:', paymentResult);
+        }
       }
       
       if (activeTab === 'job') {
