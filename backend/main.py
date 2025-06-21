@@ -71,10 +71,10 @@ app.add_middleware(
 )
 
 # Include all routers
-app.include_router(categories_router)
-app.include_router(posts_router)
-app.include_router(packages_router)
 app.include_router(admin_router)
+app.include_router(categories_router)
+app.include_router(packages_router)
+app.include_router(posts_router)
 app.include_router(users_router)
 app.include_router(webhook_router)
 
@@ -100,14 +100,30 @@ async def root():
         "architecture": "Clean modular architecture - no more monolithic server.py!"
     }
 
-# Global exception handler
+# Exception handlers
+@app.exception_handler(ValueError)
+async def value_error_handler(request, exc):
+    """Handle ValueError exceptions"""
+    return JSONResponse(
+        status_code=400,
+        content={"error": str(exc)}
+    )
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exc):
+    """Handle HTTP exceptions"""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": exc.detail}
+    )
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     """Global exception handler"""
     print(f"Global exception: {str(exc)}")
     return JSONResponse(
         status_code=500,
-        content={"error": "Internal server error", "details": str(exc)}
+        content={"error": "Internal server error"}
     )
 
 if __name__ == "__main__":
