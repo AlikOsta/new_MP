@@ -142,29 +142,53 @@
           comment: "Убрали default demo-user, теперь требуется X-Author-ID header для создания постов"
 
 ## frontend:
-  - task: "React приложение с полным UI"
+  - task: "Замена фиктивной авторизации на Telegram WebApp"
     implemented: true
     working: true
     file: "App.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: true
-          agent: "main"
-          comment: "Полнофункциональный UI с навигацией, модальными окнами, формами создания постов, избранным."
-
-  - task: "Админ панель UI"
-    implemented: true
-    working: true
-    file: "admin/AdminApp.js"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
         - working: true
           agent: "main"
-          comment: "Создана полная админ-панель: логин, дашборд, статистика, управление пользователями, постами, валютами, настройками. Роутинг интегрирован."
+          comment: "Убрана фиктивная система авторизации, добавлена интеграция с Telegram WebApp API"
+
+  - task: "Удаление демо пользователя и тестовых данных"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Удален hardcoded демо пользователь, localStorage очистка"
+
+  - task: "Удаление заголовка с именем и кнопкой входа"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Убран заголовок Auth Status Header полностью"
+
+  - task: "Замена фиктивных алертов на console.log"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Все alert() заменены на console.log() для production-ready кода"
 
 ## metadata:
   created_by: "main_agent"
