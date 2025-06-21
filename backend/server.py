@@ -849,11 +849,19 @@ async def update_user(user_id: str, request: Request):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup - Initialize database and moderation services
+    # Startup - Initialize database and services
     await db.init_db()
     await init_moderation_services()
+    
+    # Start background tasks
+    asyncio.create_task(start_background_tasks())
+    print("🚀 Background tasks started")
+    
     yield
-    # Shutdown - Database connection is handled in database.py
+    
+    # Shutdown - Stop background tasks
+    await stop_background_tasks()
+    print("🛑 Background tasks stopped")
 
 app = FastAPI(
     title="Telegram Marketplace API",
