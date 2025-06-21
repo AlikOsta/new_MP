@@ -23,6 +23,7 @@ from config import CORS_ORIGINS
 # Import all routers
 from routers import (
     admin_router,
+    auth_router,
     categories_router,
     packages_router,
     posts_router,
