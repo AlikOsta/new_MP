@@ -252,6 +252,21 @@ function App() {
     setSelectedPost(post);
   };
 
+  const handleShowCreateModal = () => {
+    if (!requireAuth('create post')) return;
+    setShowCreateModal(true);
+  };
+
+  const handleShowFavorites = () => {
+    if (!requireAuth('view favorites')) return;
+    setCurrentPage('favorites');
+  };
+
+  const handleShowProfile = () => {
+    if (!requireAuth('view profile')) return;
+    setCurrentPage('profile');
+  };
+
   const handleCloseDetails = () => {
     setSelectedPost(null);
   };
