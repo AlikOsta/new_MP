@@ -322,8 +322,8 @@ async def get_app_settings():
         "moderation_enabled": True
     }
     
-    # Merge with defaults
-    result = {**default_settings, **settings}
+    # Merge with defaults and remove _id field to avoid serialization issues
+    result = {**default_settings, **{k: v for k, v in settings.items() if k != "_id"}}
     result["id"] = str(settings.get("_id", "default"))
     
     return result
