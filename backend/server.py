@@ -901,8 +901,109 @@ async def health_check():
 
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
-    """Telegram bot webhook endpoint (placeholder)"""
-    return {"ok": True}
+    """Telegram bot webhook endpoint"""
+    try:
+        update = await request.json()
+        
+        # Обработка callback query (нажатие кнопок модератора)
+        if "callback_query" in update:
+            callback = update["callback_query"]
+            callback_data = callback.get("data", "")
+            chat_id = callback["message"]["chat"]["id"]
+            message_id = callback["message"]["message_id"]
+            
+            # Извлекаем действие и ID поста
+            if "_" in callback_data:
+                action, post_id = callback_data.split("_", 1)
+                
+                if action in ["approve", "reject"]:
+                    await handle_moderation_decision(action, post_id, callback["from"])
+                    
+                    # Обновляем сообщение в Telegram
+                    await update_telegram_message(chat_id, message_id, action, post_id)
+        
+        return {"ok": True}
+        
+    except Exception as e:
+        print(f"Webhook error: {str(e)}")
+        return {"ok": True}  # Всегда возвращаем success для Telegram
+
+async def handle_moderation_decision(action: str, post_id: str, moderator_info: dict):
+    """Обработка решения модератора"""
+    try:
+        # Получаем пост
+        post = await db.fetchone("SELECT * FROM posts WHERE id = ?", [post_id])
+        if not post:
+            print(f"Post {post_id} not found")
+            return
+        
+        # Определяем новый статус
+        new_status = 4 if action == "approve" else 5  # Опубликовано или Заблокировано
+        
+        # Обновляем пост
+        await db.update("posts", {
+            "status": new_status,
+            "updated_at": datetime.now().isoformat()
+        }, "id = ?", [post_id])
+        
+        # Если пост был платным и отклонен - возвращаем деньги
+        if action == "reject" and post.get("is_premium"):
+            await handle_refund(post_id, post.get("author_id"))
+        
+        # Отправляем уведомление об изменении статуса
+        if telegram_notifier:
+            status_text = "approved" if action == "approve" else "rejected"
+            moderator_username = moderator_info.get("username", "неизвестен")
+            await telegram_notifier.send_status_update(dict(post), status_text, moderator_username)
+        
+        print(f"Post {post_id} {action}ed by moderator {moderator_info.get('username', 'unknown')}")
+        
+    except Exception as e:
+        print(f"Error handling moderation decision: {str(e)}")
+
+async def update_telegram_message(chat_id: str, message_id: int, action: str, post_id: str):
+    """Обновляет сообщение в Telegram после принятия решения"""
+    if not telegram_notifier:
+        return
+    
+    try:
+        action_text = "✅ ОПУБЛИКОВАНО" if action == "approve" else "❌ ОТКЛОНЕНО"
+        new_text = f"{action_text}\n\nОбъявление {post_id} обработано."
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            await client.post(
+                f"{telegram_notifier.base_url}/editMessageText",
+                json={
+                    "chat_id": chat_id,
+                    "message_id": message_id,
+                    "text": new_text,
+                    "parse_mode": "HTML"
+                }
+            )
+    except Exception as e:
+        print(f"Error updating Telegram message: {str(e)}")
+
+async def handle_refund(post_id: str, author_id: str):
+    """Обработка возврата денег за отклоненный платный пост"""
+    try:
+        # Находим покупку пакета для этого поста
+        purchase = await db.fetchone(
+            "SELECT * FROM user_packages WHERE post_id = ? AND payment_status = 'paid'", 
+            [post_id]
+        )
+        
+        if purchase:
+            # Помечаем как возвращенный
+            await db.update("user_packages", {
+                "payment_status": "refunded"
+            }, "id = ?", [purchase["id"]])
+            
+            print(f"Refund processed for post {post_id}, user {author_id}, amount {purchase.get('amount', 0)}")
+            
+            # Здесь можно добавить интеграцию с реальной платежной системой для возврата
+            
+    except Exception as e:
+        print(f"Error processing refund: {str(e)}")
 
 @app.get("/")
 async def root():
