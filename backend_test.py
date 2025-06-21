@@ -14,6 +14,8 @@ class TelegramMarketplaceAPITester:
         self.categories_data = None
         self.cities_data = None
         self.currencies_data = None
+        self.admin_token = None
+        self.created_currency_id = None
 
     def run_test(self, name, method, endpoint, expected_status=200, data=None, params=None, headers=None):
         """Run a single API test"""
