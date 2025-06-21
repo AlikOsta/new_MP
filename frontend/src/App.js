@@ -19,6 +19,10 @@ import AdminApp from './admin/AdminApp';
 import * as apiService from './services/api';
 
 function App() {
+  // Check if this is admin route
+  if (window.location.pathname.startsWith('/admin')) {
+    return <AdminApp />;
+  }
   const [posts, setPosts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [cities, setCities] = useState([]);
