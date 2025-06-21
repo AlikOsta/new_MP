@@ -11,7 +11,7 @@ class Database:
         self.db_path = DATABASE_PATH
     
     async def init_db(self):
-        """Initialize database with all required tables"""
+        """Initialize database with all required tables and indexes"""
         async with aiosqlite.connect(self.db_path) as db:
             # Users table
             await db.execute("""
