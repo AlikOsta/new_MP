@@ -169,6 +169,8 @@ const PostsPage = () => {
               <option value="active">Активные</option>
               <option value="moderation">На модерации</option>
               <option value="draft">Черновики</option>
+              <option value="rejected">Отклоненные</option>
+              <option value="archived">Архив</option>
             </select>
           </div>
           <div className="flex items-end">
