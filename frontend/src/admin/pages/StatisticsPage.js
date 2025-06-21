@@ -64,27 +64,17 @@ const StatisticsPage = () => {
     );
   }
 
-  // Sample data for charts
-  const userGrowthData = userStats?.daily_users || [
-    { date: '2024-01-01', users: 5, active: 3 },
-    { date: '2024-01-02', users: 8, active: 6 },
-    { date: '2024-01-03', users: 12, active: 9 },
-    { date: '2024-01-04', users: 15, active: 11 },
-    { date: '2024-01-05', users: 20, active: 15 },
-    { date: '2024-01-06', users: 18, active: 14 },
-    { date: '2024-01-07', users: 25, active: 20 }
-  ];
+  // Use only real data for charts
+  const userGrowthData = userStats?.daily_users || [];
 
-  const postTypesData = [
-    { name: 'Работа', value: postStats?.posts_by_type?.job || 65, color: '#3b82f6' },
-    { name: 'Услуги', value: postStats?.posts_by_type?.service || 35, color: '#10b981' }
-  ];
+  const postTypesData = postStats?.posts_by_type ? [
+    { name: 'Работа', value: postStats.posts_by_type.job || 0, color: '#3b82f6' },
+    { name: 'Услуги', value: postStats.posts_by_type.service || 0, color: '#10b981' }
+  ] : [];
 
   const postStatusData = [
-    { status: 'Активные', count: postStats?.active_posts || 45 },
-    { status: 'Модерация', count: 12 },
-    { status: 'Отклонены', count: 8 },
-    { status: 'Архив', count: 25 }
+    { status: 'Активные', count: postStats?.active_posts || 0 },
+    { status: 'Всего', count: postStats?.total_posts || 0 }
   ];
 
   return (
