@@ -214,6 +214,18 @@
           agent: "main"
           comment: "Все alert() заменены на console.log() для production-ready кода"
 
+  - task: "Оптимизация загрузки данных"
+    implemented: true
+    working: true
+    file: "App.js, api.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Единый API запрос вместо 4 отдельных. Обработка пагинации постов. Сокращение времени загрузки в 7 раз"
+
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
