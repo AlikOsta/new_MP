@@ -2,6 +2,7 @@ import sys
 import os
 import asyncio
 import uuid
+import httpx
 from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
