@@ -472,6 +472,436 @@ class TelegramMarketplaceAPITester:
                     print("❌ Verification failed: Post still found in favorites after removal")
         
         return add_success and get_success and remove_success, get_data
+        
+    # Admin Panel Tests
+    def test_admin_login_valid(self):
+        """Test admin login with valid credentials"""
+        login_data = {
+            "username": "Admin",
+            "password": "Admin"
+        }
+        
+        success, data = self.run_test(
+            "Admin Login (Valid)",
+            "POST",
+            "api/admin/login",
+            200,
+            data=login_data
+        )
+        
+        if success and data:
+            if data.get("success") and "token" in data and "user" in data:
+                print("✅ Verified: Admin login successful with token returned")
+                self.admin_token = data.get("token")
+                print(f"Admin token: {self.admin_token}")
+            else:
+                print("❌ Verification failed: Admin login response missing success flag, token or user data")
+                success = False
+        
+        return success, data
+    
+    def test_admin_login_invalid(self):
+        """Test admin login with invalid credentials"""
+        login_data = {
+            "username": "WrongAdmin",
+            "password": "WrongPassword"
+        }
+        
+        success, data = self.run_test(
+            "Admin Login (Invalid)",
+            "POST",
+            "api/admin/login",
+            200,  # API returns 200 even for failed login
+            data=login_data
+        )
+        
+        if success and data:
+            if data.get("success") == False and "error" in data:
+                print("✅ Verified: Admin login correctly rejected with error message")
+                success = True
+            else:
+                print("❌ Verification failed: Invalid admin login did not return expected error")
+                success = False
+        
+        return success, data
+    
+    def test_admin_stats_users(self):
+        """Test admin user statistics endpoint"""
+        if not self.admin_token:
+            print("❌ Cannot test admin stats: No admin token available")
+            return False, None
+        
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.admin_token}'
+        }
+        
+        success, data = self.run_test(
+            "Admin Stats - Users",
+            "GET",
+            "api/admin/stats/users",
+            200,
+            headers=headers
+        )
+        
+        if success and data:
+            # Verify the response contains expected fields
+            expected_fields = ["total_users", "new_users_7d", "new_users_30d", "daily_users"]
+            missing_fields = [field for field in expected_fields if field not in data]
+            
+            if not missing_fields:
+                print(f"✅ Verified: User stats contains all expected fields: {', '.join(expected_fields)}")
+            else:
+                print(f"❌ Verification failed: User stats missing fields: {', '.join(missing_fields)}")
+                success = False
+        
+        return success, data
+    
+    def test_admin_stats_posts(self):
+        """Test admin post statistics endpoint"""
+        if not self.admin_token:
+            print("❌ Cannot test admin stats: No admin token available")
+            return False, None
+        
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.admin_token}'
+        }
+        
+        success, data = self.run_test(
+            "Admin Stats - Posts",
+            "GET",
+            "api/admin/stats/posts",
+            200,
+            headers=headers
+        )
+        
+        if success and data:
+            # Verify the response contains expected fields
+            expected_fields = ["total_posts", "active_posts", "new_posts_7d", "new_posts_30d", "popular_posts", "posts_by_type"]
+            missing_fields = [field for field in expected_fields if field not in data]
+            
+            if not missing_fields:
+                print(f"✅ Verified: Post stats contains all expected fields: {', '.join(expected_fields)}")
+            else:
+                print(f"❌ Verification failed: Post stats missing fields: {', '.join(missing_fields)}")
+                success = False
+        
+        return success, data
+    
+    def test_admin_get_settings(self):
+        """Test getting admin settings"""
+        if not self.admin_token:
+            print("❌ Cannot test admin settings: No admin token available")
+            return False, None
+        
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.admin_token}'
+        }
+        
+        success, data = self.run_test(
+            "Admin Get Settings",
+            "GET",
+            "api/admin/settings",
+            200,
+            headers=headers
+        )
+        
+        if success and data:
+            # Verify the response contains expected fields
+            expected_fields = ["show_view_counts", "app_name", "app_description", "free_posts_per_week", "moderation_enabled"]
+            missing_fields = [field for field in expected_fields if field not in data]
+            
+            if not missing_fields:
+                print(f"✅ Verified: Settings contains all expected fields: {', '.join(expected_fields)}")
+            else:
+                print(f"❌ Verification failed: Settings missing fields: {', '.join(missing_fields)}")
+                success = False
+        
+        return success, data
+    
+    def test_admin_update_settings(self):
+        """Test updating admin settings"""
+        if not self.admin_token:
+            print("❌ Cannot test admin settings update: No admin token available")
+            return False, None
+        
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.admin_token}'
+        }
+        
+        # First get current settings
+        _, current_settings = self.run_test(
+            "Get Current Settings",
+            "GET",
+            "api/admin/settings",
+            200,
+            headers=headers
+        )
+        
+        if not current_settings:
+            return False, None
+        
+        # Update settings with new values
+        update_data = {
+            "app_name": "Updated Telegram Marketplace",
+            "app_description": "Updated platform for private listings",
+            "free_posts_per_week": 2,
+            "moderation_enabled": True
+        }
+        
+        success, data = self.run_test(
+            "Admin Update Settings",
+            "PUT",
+            "api/admin/settings",
+            200,
+            data=update_data,
+            headers=headers
+        )
+        
+        if success and data:
+            if data.get("success") and "message" in data:
+                print("✅ Verified: Settings updated successfully")
+                
+                # Verify the settings were actually updated
+                _, updated_settings = self.run_test(
+                    "Verify Updated Settings",
+                    "GET",
+                    "api/admin/settings",
+                    200,
+                    headers=headers
+                )
+                
+                if updated_settings:
+                    all_updated = all(updated_settings.get(key) == value for key, value in update_data.items())
+                    if all_updated:
+                        print("✅ Verified: All settings values were updated correctly")
+                    else:
+                        print("❌ Verification failed: Not all settings were updated correctly")
+                        success = False
+            else:
+                print("❌ Verification failed: Settings update response missing success flag or message")
+                success = False
+        
+        # Restore original settings
+        if current_settings:
+            restore_data = {
+                "app_name": current_settings.get("app_name"),
+                "app_description": current_settings.get("app_description"),
+                "free_posts_per_week": current_settings.get("free_posts_per_week"),
+                "moderation_enabled": current_settings.get("moderation_enabled")
+            }
+            
+            self.run_test(
+                "Restore Original Settings",
+                "PUT",
+                "api/admin/settings",
+                200,
+                data=restore_data,
+                headers=headers
+            )
+        
+        return success, data
+    
+    def test_admin_get_currencies(self):
+        """Test getting admin currencies"""
+        if not self.admin_token:
+            print("❌ Cannot test admin currencies: No admin token available")
+            return False, None
+        
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.admin_token}'
+        }
+        
+        success, data = self.run_test(
+            "Admin Get Currencies",
+            "GET",
+            "api/admin/currencies",
+            200,
+            headers=headers
+        )
+        
+        if success and data:
+            if isinstance(data, list):
+                print(f"✅ Verified: Retrieved {len(data)} currencies")
+                
+                # Check for expected currency codes
+                currency_codes = [curr.get("code") for curr in data if "code" in curr]
+                expected_codes = ["RUB", "USD", "EUR", "UAH"]
+                found_codes = [code for code in expected_codes if code in currency_codes]
+                
+                if len(found_codes) == len(expected_codes):
+                    print(f"✅ Verified: Found all expected currency codes: {', '.join(found_codes)}")
+                else:
+                    print(f"❌ Verification failed: Not all expected currency codes found. Found: {', '.join(found_codes)}")
+                    success = False
+            else:
+                print("❌ Verification failed: Currencies response is not a list")
+                success = False
+        
+        return success, data
+    
+    def test_admin_create_currency(self):
+        """Test creating a currency"""
+        if not self.admin_token:
+            print("❌ Cannot test currency creation: No admin token available")
+            return False, None
+        
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.admin_token}'
+        }
+        
+        # Create a new test currency
+        currency_data = {
+            "code": "TST",
+            "name_ru": "Тестовая валюта",
+            "name_ua": "Тестова валюта",
+            "symbol": "₮"
+        }
+        
+        success, data = self.run_test(
+            "Admin Create Currency",
+            "POST",
+            "api/admin/currencies",
+            200,
+            data=currency_data,
+            headers=headers
+        )
+        
+        if success and data:
+            if "id" in data and data.get("code") == currency_data["code"]:
+                print(f"✅ Verified: Currency created successfully with ID: {data['id']}")
+                self.created_currency_id = data["id"]
+                
+                # Verify the currency appears in the list
+                _, currencies_data = self.run_test(
+                    "Verify Currency Creation",
+                    "GET",
+                    "api/admin/currencies",
+                    200,
+                    headers=headers
+                )
+                
+                if currencies_data and isinstance(currencies_data, list):
+                    found_currency = any(curr.get("id") == self.created_currency_id for curr in currencies_data)
+                    if found_currency:
+                        print("✅ Verified: New currency found in currencies list")
+                    else:
+                        print("❌ Verification failed: New currency not found in currencies list")
+                        success = False
+            else:
+                print("❌ Verification failed: Currency creation response missing ID or has incorrect code")
+                success = False
+        
+        return success, data
+    
+    def test_admin_update_currency(self):
+        """Test updating a currency"""
+        if not self.admin_token or not self.created_currency_id:
+            print("❌ Cannot test currency update: No admin token or currency ID available")
+            return False, None
+        
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.admin_token}'
+        }
+        
+        # Update the test currency
+        update_data = {
+            "name_ru": "Обновленная тестовая валюта",
+            "name_ua": "Оновлена тестова валюта",
+            "symbol": "₮₮"
+        }
+        
+        success, data = self.run_test(
+            "Admin Update Currency",
+            "PUT",
+            f"api/admin/currencies/{self.created_currency_id}",
+            200,
+            data=update_data,
+            headers=headers
+        )
+        
+        if success and data:
+            if data.get("success") and "message" in data:
+                print("✅ Verified: Currency updated successfully")
+                
+                # Verify the currency was actually updated
+                _, currencies_data = self.run_test(
+                    "Verify Currency Update",
+                    "GET",
+                    "api/admin/currencies",
+                    200,
+                    headers=headers
+                )
+                
+                if currencies_data and isinstance(currencies_data, list):
+                    updated_currency = next((curr for curr in currencies_data if curr.get("id") == self.created_currency_id), None)
+                    if updated_currency:
+                        if (updated_currency.get("name_ru") == update_data["name_ru"] and 
+                            updated_currency.get("name_ua") == update_data["name_ua"] and
+                            updated_currency.get("symbol") == update_data["symbol"]):
+                            print("✅ Verified: Currency fields were updated correctly")
+                        else:
+                            print("❌ Verification failed: Not all currency fields were updated correctly")
+                            success = False
+                    else:
+                        print("❌ Verification failed: Updated currency not found in currencies list")
+                        success = False
+            else:
+                print("❌ Verification failed: Currency update response missing success flag or message")
+                success = False
+        
+        return success, data
+    
+    def test_admin_delete_currency(self):
+        """Test deleting a currency"""
+        if not self.admin_token or not self.created_currency_id:
+            print("❌ Cannot test currency deletion: No admin token or currency ID available")
+            return False, None
+        
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.admin_token}'
+        }
+        
+        success, data = self.run_test(
+            "Admin Delete Currency",
+            "DELETE",
+            f"api/admin/currencies/{self.created_currency_id}",
+            200,
+            headers=headers
+        )
+        
+        if success and data:
+            if data.get("success") and "message" in data:
+                print("✅ Verified: Currency deleted successfully")
+                
+                # Verify the currency was actually deleted
+                _, currencies_data = self.run_test(
+                    "Verify Currency Deletion",
+                    "GET",
+                    "api/admin/currencies",
+                    200,
+                    headers=headers
+                )
+                
+                if currencies_data and isinstance(currencies_data, list):
+                    deleted_currency = next((curr for curr in currencies_data if curr.get("id") == self.created_currency_id), None)
+                    if not deleted_currency:
+                        print("✅ Verified: Deleted currency no longer in currencies list")
+                    else:
+                        print("❌ Verification failed: Deleted currency still found in currencies list")
+                        success = False
+            else:
+                print("❌ Verification failed: Currency deletion response missing success flag or message")
+                success = False
+        
+        return success, data
 
     def print_summary(self):
         """Print test summary"""
