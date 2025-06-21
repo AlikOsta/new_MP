@@ -74,6 +74,7 @@ app.add_middleware(
 
 # Include all routers
 app.include_router(admin_router)
+app.include_router(auth_router)
 app.include_router(categories_router)
 app.include_router(packages_router)
 app.include_router(posts_router)
