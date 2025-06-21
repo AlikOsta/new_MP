@@ -198,9 +198,9 @@
 
 ## test_plan:
   current_focus:
-    - "Изучение существующей функциональности"
-    - "Определение следующих задач для развития"
-    - "Система тарифов (Packages API)"
+    - "Подготовка к продакшену завершена"
+    - "Удаление демо контента"
+    - "Интеграция с Telegram WebApp"
   stuck_tasks: []
   test_all: false
   test_priority: "sequential"
