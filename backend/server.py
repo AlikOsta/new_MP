@@ -33,23 +33,13 @@ async def get_super_rubrics():
 
 @categories_router.get("/cities")
 async def get_cities():
-    cursor = db.cities.find({"is_active": True})
-    result = []
-    async for doc in cursor:
-        doc["_id"] = str(doc["_id"])
-        doc["id"] = doc["_id"]
-        result.append(doc)
-    return result
+    results = await db.fetchall("SELECT * FROM cities WHERE is_active = 1")
+    return results
 
 @categories_router.get("/currencies")
 async def get_currencies():
-    cursor = db.currencies.find({"is_active": True})
-    result = []
-    async for doc in cursor:
-        doc["_id"] = str(doc["_id"])
-        doc["id"] = doc["_id"]
-        result.append(doc)
-    return result
+    results = await db.fetchall("SELECT * FROM currencies WHERE is_active = 1")
+    return results
 
 # Posts router
 posts_router = APIRouter(prefix="/api/posts", tags=["posts"])
