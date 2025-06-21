@@ -4,6 +4,15 @@ const CategoriesPage = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [formData, setFormData] = useState({
+    name_ru: '',
+    name_ua: '',
+    icon: '',
+    is_active: true
+  });
 
   useEffect(() => {
     loadCategories();
