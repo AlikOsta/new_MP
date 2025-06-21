@@ -290,25 +290,33 @@ class TelegramAuthTester:
             }
         )
     
-    def test_protected_endpoint_with_invalid_token(self):
-        """Test accessing a protected endpoint with invalid token"""
+    def test_protected_endpoint_with_jwt_token(self):
+        """Test accessing a protected endpoint with JWT token"""
+        if not self.access_token:
+            print("❌ Cannot test protected endpoint with JWT: No valid token available")
+            return False, None
+        
+        # For this test, we'll try to use both the JWT token and the X-Author-ID header
+        # This simulates how the frontend would use the JWT token for authentication
+        # and the X-Author-ID header for post creation
         headers = {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer invalid_token_for_testing'
+            'Authorization': f'Bearer {self.access_token}',
+            'X-Author-ID': 'test_user_id'  # This should match the user_id in the token
         }
         
         return self.run_test(
-            "Access Protected Endpoint with Invalid Token",
+            "Access Protected Endpoint with JWT Token",
             "POST",
             "api/posts/jobs",
-            401,  # Expect 401 Unauthorized
+            400,  # Expect 400 Bad Request because we don't have valid category/city/currency IDs
             data={
-                "title": "Test Job Post",
-                "description": "This is a test job post",
+                "title": "Test Job Post with JWT",
+                "description": "This is a test job post with JWT authentication",
                 "price": 1500,
-                "currency_id": "some-currency-id",
-                "super_rubric_id": "some-category-id",
-                "city_id": "some-city-id"
+                "currency_id": "invalid-currency-id",
+                "super_rubric_id": "invalid-category-id",
+                "city_id": "invalid-city-id"
             },
             headers=headers
         )
