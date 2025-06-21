@@ -286,6 +286,44 @@ class Database:
             ("default", datetime.now().isoformat())
         )
         
+        # Insert default packages
+        packages = [
+            (
+                "free-package", "Бесплатный", "Безкоштовний", "free", 0, "rub-id", 7, 30,
+                "1 объявление в неделю|Базовое размещение", "1 оголошення на тиждень|Базове розміщення",
+                0, 0, 0, None, 1, 1, datetime.now().isoformat(), datetime.now().isoformat()
+            ),
+            (
+                "standard-package", "Стандарт", "Стандарт", "standard", 100, "rub-id", 30, 30,
+                "Стандартное размещение|30 дней активности", "Стандартне розміщення|30 днів активності", 
+                0, 0, 0, None, 1, 2, datetime.now().isoformat(), datetime.now().isoformat()
+            ),
+            (
+                "photo-package", "С фото", "З фото", "photo", 150, "rub-id", 30, 30,
+                "Возможность добавить фото|30 дней активности", "Можливість додати фото|30 днів активності",
+                1, 0, 0, None, 1, 3, datetime.now().isoformat(), datetime.now().isoformat()
+            ),
+            (
+                "highlight-package", "Выделение", "Виділення", "highlight", 200, "rub-id", 14, 30,
+                "Выделение цветом|14 дней выделения", "Виділення кольором|14 днів виділення",
+                0, 1, 0, None, 1, 4, datetime.now().isoformat(), datetime.now().isoformat()
+            ),
+            (
+                "boost-package", "Больше показов", "Більше показів", "boost", 300, "rub-id", 7, 30,
+                "Поднятие каждые 3 дня|7 дней активности", "Підняття кожні 3 дні|7 днів активності",
+                0, 0, 1, 3, 1, 5, datetime.now().isoformat(), datetime.now().isoformat()
+            )
+        ]
+        
+        for package in packages:
+            await db.execute(
+                """INSERT INTO packages (id, name_ru, name_ua, package_type, price, currency_id, 
+                   duration_days, post_lifetime_days, features_ru, features_ua, has_photo, 
+                   has_highlight, has_boost, boost_interval_days, is_active, sort_order, 
+                   created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                package
+            )
+        
         await db.commit()
         print("Default data initialized successfully")
 
