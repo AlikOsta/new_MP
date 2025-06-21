@@ -4,7 +4,6 @@ import './AdminApp.css';
 
 // Admin Components
 import AdminLogin from './components/AdminLogin';
-import AdminDashboard from './components/AdminDashboard';
 import AdminSidebar from './components/AdminSidebar';
 import AdminHeader from './components/AdminHeader';
 
