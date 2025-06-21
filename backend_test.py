@@ -21,7 +21,7 @@ class TelegramMarketplaceAPITester:
         self.admin_token = None
         self.created_currency_id = None
         self.created_user_id = None
-        self.db_path = "/app/backend/telegram_marketplace.db"
+        self.db_path = "/app/telegram_marketplace.db"
         self.performance_metrics = {}
         
         # Create a test user for our tests
