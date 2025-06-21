@@ -196,13 +196,25 @@ class ApiService {
     return this.request(`/api/packages/payments/${paymentId}`);
   }
 
-  async completePayment(paymentId, telegramChargeId, providerChargeId) {
-    return this.request(`/api/packages/payments/${paymentId}/complete`, {
-      method: 'PUT',
-      body: {
-        telegram_charge_id: telegramChargeId,
-        provider_charge_id: providerChargeId
-      }
+  // Authentication API
+  async authenticateWithTelegram(initData) {
+    return this.request('/api/auth/telegram', {
+      method: 'POST',
+      body: { init_data: initData }
+    });
+  }
+
+  async verifyAuthentication() {
+    return this.request('/api/auth/verify');
+  }
+
+  async getCurrentUser() {
+    return this.request('/api/auth/me');
+  }
+
+  async logout() {
+    return this.request('/api/auth/logout', {
+      method: 'POST'
     });
   }
 }
