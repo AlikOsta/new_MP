@@ -16,8 +16,9 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from config import CORS_ORIGINS
 
 # Import AI Moderation and Background Tasks
-from ai_moderation import init_moderation_services
-from background_tasks import start_background_tasks, stop_background_tasks
+# Temporarily disabled AI moderation due to httpcore issues
+# from ai_moderation import init_moderation_services
+# from background_tasks import start_background_tasks, stop_background_tasks
 
 # Import all routers
 from routers import (
