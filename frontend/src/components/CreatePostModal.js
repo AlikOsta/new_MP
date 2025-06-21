@@ -400,46 +400,51 @@ const CreatePostModal = ({
             )}
           </div>
 
-          {/* Photo Upload */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Фото
-            </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-              {imagePreview ? (
-                <div className="relative">
-                  <img src={imagePreview} alt="Preview" className="w-full h-32 object-cover rounded" />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedImage(null);
-                      setImagePreview(null);
-                    }}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                    id="image-upload"
-                  />
-                  <label htmlFor="image-upload" className="cursor-pointer">
-                    <div className="text-4xl mb-2">📷</div>
-                    <div className="text-sm text-gray-600">
-                      <p>Нажмите для выбора фото</p>
-                      <p className="text-xs">PNG, JPG до 5MB</p>
+          {/* Photo Upload - only show if package supports photos */}
+          {(() => {
+            const selectedPkg = packages.find(pkg => pkg.id === selectedPackage);
+            return selectedPkg?.has_photo ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Фото
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img src={imagePreview} alt="Preview" className="w-full h-32 object-cover rounded" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedImage(null);
+                          setImagePreview(null);
+                        }}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
+                      >
+                        ✕
+                      </button>
                     </div>
-                  </label>
+                  ) : (
+                    <div className="text-center">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                        id="image-upload"
+                      />
+                      <label htmlFor="image-upload" className="cursor-pointer">
+                        <div className="text-4xl mb-2">📷</div>
+                        <div className="text-sm text-gray-600">
+                          <p>Нажмите для выбора фото</p>
+                          <p className="text-xs">PNG, JPG до 5MB</p>
+                        </div>
+                      </label>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            ) : null;
+          })()}
 
           {/* Buttons */}
           <div className="flex space-x-3 pt-4">
