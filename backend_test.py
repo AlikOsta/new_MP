@@ -5,6 +5,7 @@ import sqlite3
 from datetime import datetime
 import uuid
 import os
+import time
 
 class TelegramMarketplaceAPITester:
     def __init__(self, base_url):
@@ -20,7 +21,8 @@ class TelegramMarketplaceAPITester:
         self.admin_token = None
         self.created_currency_id = None
         self.created_user_id = None
-        self.db_path = "/app/telegram_marketplace.db"
+        self.db_path = "/app/backend/telegram_marketplace.db"
+        self.performance_metrics = {}
         
         # Create a test user for our tests
         self.test_user = {
