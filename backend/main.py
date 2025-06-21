@@ -36,13 +36,13 @@ async def lifespan(app: FastAPI):
     # Startup
     print("🚀 Starting Telegram Marketplace API...")
     
-    # Initialize AI moderation services
-    await init_moderation_services()
-    print("✅ AI moderation services initialized")
+    # Initialize AI moderation services - temporarily disabled
+    # await init_moderation_services()
+    # print("✅ AI moderation services initialized")
     
-    # Start background tasks
-    await start_background_tasks()
-    print("✅ Background tasks started")
+    # Start background tasks - temporarily disabled
+    # await start_background_tasks()
+    # print("✅ Background tasks started")
     
     print("🎉 Application startup complete!")
     
@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI):
     
     # Shutdown
     print("🛑 Shutting down application...")
-    await stop_background_tasks()
+    # await stop_background_tasks()
     print("✅ Shutdown complete")
 
 # Create FastAPI application
