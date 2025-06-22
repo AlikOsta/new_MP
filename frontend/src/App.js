@@ -411,17 +411,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
-      {/* Debug Info (только в development) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 p-2 text-xs">
-          <div><strong>Debug Info:</strong></div>
-          <div>User: {currentUser ? `${currentUser.first_name} (${currentUser.id})` : 'Not authenticated'}</div>
-          <div>Telegram WebApp: {window.Telegram?.WebApp ? 'Available' : 'Not available'}</div>
-          <div>Environment: {process.env.NODE_ENV}</div>
-        </div>
-      )}
-      
+    <div className="min-h-screen bg-gray-50 pb-16">      
       <main className="container mx-auto px-4 py-6 max-w-md">
         {currentPage === 'home' && (
           <>
