@@ -38,6 +38,16 @@ const CreatePostModal = ({
       }
     }
   }, [currencies, formData.currency_id]);
+
+  // Автоматически выбираем бесплатный тариф по умолчанию
+  React.useEffect(() => {
+    if (packages.length > 0 && !selectedPackage) {
+      const freePackage = packages.find(pkg => pkg.price === 0);
+      if (freePackage) {
+        setSelectedPackage(freePackage.id);
+      }
+    }
+  }, [packages, selectedPackage]);
   
   // Отдельный useEffect для обновления данных пользователя
   React.useEffect(() => {
