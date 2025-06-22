@@ -7,6 +7,7 @@ from services.post_service import PostService
 from services.moderation_service import ModerationService
 from database import db
 from datetime import datetime
+import uuid
 
 router = APIRouter(prefix="/api/posts", tags=["posts"])
 
